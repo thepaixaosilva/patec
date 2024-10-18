@@ -1,39 +1,33 @@
-import { StudentAnswer } from 'src/student-answers/entities/student-answer.entity';
-import { Subject } from 'src/subjects/entities/subject.entity';
-import {
-  Column,
-  Entity,
-  ManyToMany,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { StudentAnswer } from 'src/student-answers/entities/student-answer.entity'
+import { Subject } from 'src/subjects/entities/subject.entity'
+import { Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: number
 
   @Column()
-  name: string;
+  name: string
 
   @Column({ nullable: true })
-  ra: string;
+  ra: string
 
   @Column({ nullable: true })
-  rf: string;
+  rf: string
 
   @Column()
-  email: string;
+  email: string
 
   @Column()
-  profile: string;
+  profile: string
 
   @Column()
-  password: string;
+  password: string
 
   @ManyToMany(() => Subject, (subject) => subject.users)
-  subjects: Subject[];
+  subjects: Subject[]
 
   @OneToMany(() => StudentAnswer, (studentAnswer) => studentAnswer.user)
-  answers: StudentAnswer[];
+  answers: StudentAnswer[]
 }

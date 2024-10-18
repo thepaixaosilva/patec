@@ -1,21 +1,21 @@
-import { AnswerKey } from 'src/answer-keys/entities/answer-key.entity';
-import { User } from 'src/users/entities/user.entity';
-import { Column, Entity, ManyToMany, OneToMany, PrimaryColumn } from 'typeorm';
+import { AnswerKey } from 'src/answer-keys/entities/answer-key.entity'
+import { User } from 'src/users/entities/user.entity'
+import { Column, Entity, ManyToMany, OneToMany, PrimaryColumn } from 'typeorm'
 
 @Entity()
 export class Subject {
   @PrimaryColumn()
-  subjectId: string;
+  subjectId: string
 
   @Column()
-  name: string;
+  name: string
 
   @Column()
-  semester: number;
+  semester: number
 
   @ManyToMany(() => User, (user) => user.subjects)
-  users: User[];
+  users: User[]
 
   @OneToMany(() => AnswerKey, (answerKey) => answerKey.subject)
-  answerKeys: AnswerKey[];
+  answerKeys: AnswerKey[]
 }

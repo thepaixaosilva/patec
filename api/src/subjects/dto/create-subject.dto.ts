@@ -1,12 +1,12 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty } from 'class-validator'
 
 export class CreateSubjectDto {
   @IsNotEmpty({ message: 'Código da disciplina é obrigatório ' })
-  subjectId: string;
+  subjectId: string
 
   @IsNotEmpty({ message: 'Nome da disciplina é obrigatório ' })
-  name: string;
+  name: string
 
   @IsNotEmpty({ message: 'Semestre é obrigatório ' })
-  semester: number;
+  semester: number
 }

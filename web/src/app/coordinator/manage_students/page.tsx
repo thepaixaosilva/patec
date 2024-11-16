@@ -89,25 +89,25 @@ export default function StudentManagement() {
           <motion.table initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="w-full border-collapse">
             <thead className="bg-gray-200">
               <tr>
-                <th className="p-2 border-b">RA</th>
-                <th className="p-2 border-b">Nome</th>
-                <th className="p-2 border-b">E-mail</th>
-                <th className="p-2 border-b"></th>
-                <th className="p-2 border-b"></th>
+                <th className="p-2 w-1/6 border-b text-start">RA</th>
+                <th className="p-2 w-2/6 border-b text-start">Nome</th>
+                <th className="p-2 w-2/6 border-b text-start">E-mail</th>
+                <th className="p-2 w-1/12 border-b"></th>
+                <th className="p-2 w-1/12 border-b"></th>
               </tr>
             </thead>
             <tbody>
               {data.map((student, index) => (
                 <motion.tr key={index} className="hover:bg-gray-100" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }}>
-                  <td className="p-2 border-b">{student.ra}</td>
-                  <td className="p-2 border-b">{student.name}</td>
-                  <td className="p-2 border-b">{student.email}</td>
-                  <td className="p-2 border-b text-center">
+                  <td className="p-2 w-1/6 border-b">{student.ra}</td>
+                  <td className="p-2 w-2/6 border-b">{student.name}</td>
+                  <td className="p-2 w-2/6 border-b">{student.email}</td>
+                  <td className="p-2 w-1/12 border-b text-center">
                     <Button onClick={() => openEditModal(index)} className="text-blue-500 hover:text-blue-700">
                       <FaPencilAlt />
                     </Button>
                   </td>
-                  <td className="p-2 border-b text-center">
+                  <td className="p-2 w-1/12 border-b text-center">
                     <Button onClick={() => openDeleteModal(index)} className="text-red-500 hover:text-red-700">
                       <FaRegTrashCan />
                     </Button>

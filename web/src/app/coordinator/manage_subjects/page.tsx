@@ -91,7 +91,7 @@ export default function SubjectManagement() {
           <motion.table initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="w-full border-collapse">
             <thead className="bg-gray-200">
               <tr>
-                <th className="p-2 w-2/6 border-b text-start">Código</th>
+                <th className="p-2 w-1/6 border-b text-start">Código</th>
                 <th className="p-2 w-2/6 border-b text-start">Nome</th>
                 <th className="p-2 w-2/6 border-b">Semestre</th>
                 <th className="p-2 w-1/12 border-b"></th>
@@ -101,7 +101,7 @@ export default function SubjectManagement() {
             <tbody>
               {data.map((subject, index) => (
                 <motion.tr key={index} className="hover:bg-gray-100" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }}>
-                  <td className="p-2 w-2/6 border-b">{subject.subjectId}</td>
+                  <td className="p-2 w-1/6 border-b">{subject.subjectId}</td>
                   <td className="p-2 w-2/6 border-b">{subject.name}</td>
                   <td className="p-2 w-2/6 border-b text-center">{subject.semester}</td>
                   <td className="p-2 w-1/12 border-b text-center">

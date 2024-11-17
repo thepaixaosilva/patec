@@ -1,9 +1,11 @@
 import { Button, Fieldset, HStack } from '@chakra-ui/react'
+import { DialogActionTrigger, DialogBody, DialogCloseTrigger, DialogContent, DialogFooter, DialogHeader, DialogRoot, DialogTrigger } from './ui/dialog'
 import { Radio, RadioGroup } from '@/components/ui/radio'
 import { Stack, Text } from '@chakra-ui/react'
 import { z } from 'zod'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 
 interface HeaderProps {
   subject: string[]
@@ -18,12 +20,15 @@ const items = [
 ]
 
 const formSchema = z.object({
-  value: z.array(z.string({ message: "Obrigatório" })),
+  value: z.array(z.string({ message: 'Obrigatório' })),
 })
 
 type FormValues = z.infer<typeof formSchema>
 
 const Answersheet: React.FC<HeaderProps> = ({ subject = [] }) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isSucess, setIsSucess] = useState(false)
+
   const {
     control,
     handleSubmit,
@@ -33,23 +38,34 @@ const Answersheet: React.FC<HeaderProps> = ({ subject = [] }) => {
     defaultValues: { value: [] },
   })
 
-  const onSubmit = handleSubmit((data) => console.log(data))
+  const onSubmit = handleSubmit((data) => {
+    console.log(data)
+    setIsDialogOpen(false)
+    setIsSucess(true)
+    alert('Formulário enviado com sucesso!')
+  })
 
+  const handleDialogClose = () => setIsDialogOpen(false)
+  
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4 mx-auto w-[450px]">
+    <form id="answersForm" onSubmit={onSubmit} className="flex flex-col gap-4 mx-auto w-[475px]">
       <Fieldset.Root invalid={!!errors.value}>
         {subject.map((element, subjectIndex) => (
           <div key={subjectIndex} className="mb-6">
             <div className="flex items-center justify-start m-2">
               <Stack>
-                <Text  fontWeight="bold" fontSize="lg">{element}</Text>
+                <Text fontWeight="bold" fontSize="lg">
+                  {element}
+                </Text>
               </Stack>
             </div>
 
             {Array.from({ length: 5 }).map((_, questionIndex) => (
               <div key={questionIndex} className="flex">
                 <div className="flex items-center justify-center m-2">
-                  <Fieldset.Legend>Questão {questionIndex + 1}</Fieldset.Legend>
+                  <div className="mr-6">
+                    <Fieldset.Legend>Questão {questionIndex + 1}</Fieldset.Legend>
+                  </div>
                   <Controller
                     name={`value.${subjectIndex * 5 + questionIndex}`}
                     control={control}
@@ -86,9 +102,30 @@ const Answersheet: React.FC<HeaderProps> = ({ subject = [] }) => {
         ))}
 
         <div className="flex items-center justify-center m-4">
-          <Button className=" bg-blue-500 text-white px-4 py-2 rounded w-40 hover:scale-105 hover:bg-blue-600" type="submit">
-            Enviar respostas
-          </Button>
+          <DialogRoot open={isDialogOpen} onOpenChange={(e)=> setIsDialogOpen(e.open)}>
+            <DialogTrigger asChild>
+              <Button className="bg-blue-500 text-white px-4 py-2 rounded w-40 hover:scale-105 hover:bg-blue-600" variant="outline">
+                Enviar respostas
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader></DialogHeader>
+              <DialogBody>
+                <p>Deseja enviar suas respostas?</p>
+              </DialogBody>
+              <DialogFooter>
+                <DialogActionTrigger asChild>
+                  <Button size="md" variant="outline" onClick={handleDialogClose}>
+                    Cancelar
+                  </Button>
+                </DialogActionTrigger>
+                <Button type="submit" form="answersForm" bg="black" color="white" w="75px" h="35px" onClick={handleDialogClose}>
+                  Enviar
+                </Button>
+              </DialogFooter>
+              <DialogCloseTrigger />
+            </DialogContent>
+          </DialogRoot>
         </div>
       </Fieldset.Root>
     </form>

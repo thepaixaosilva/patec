@@ -1,20 +1,22 @@
+'use client'
 import { PiStudentFill } from 'react-icons/pi'
 import { IoCalendar } from 'react-icons/io5'
 import { GiBookCover } from 'react-icons/gi'
 import { HiOutlineDocumentReport } from 'react-icons/hi'
 import { FaPenClip } from 'react-icons/fa6'
 import { LinkButton } from '@/components/ui/link-button'
+import { motion } from 'framer-motion'
 
-export const metadata = {
-  title: 'Dashboard',
-  icons: {
-    icon: '/favicon.ico',
-  },
-}
+// export const metadata = {
+//   title: 'Dashboard',
+//   icons: {
+//     icon: '/favicon.ico',
+//   },
+// }
 
 export default function Dashboard() {
-  // Classe base para os botões
-  const baseButtonClasses = 'flex flex-col items-center justify-center text-white px-4 py-2 rounded size-64 transition-transform duration-200 hover:scale-105'
+  // Classe base para os botões com sombras e transições
+  const baseButtonClasses = 'flex flex-col items-center justify-center text-white px-6 py-4 rounded-xl size-64 transition-transform duration-300 hover:scale-105 hover:shadow-2xl'
 
   // Itens do botão com ícones, títulos, e cores específicas
   const buttonItems = [
@@ -51,13 +53,15 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <div className="grid grid-cols-3 gap-4">
+    <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-8 px-4">
         {buttonItems.map((item, index) => (
-          <LinkButton key={index} href={item.href} className={`${baseButtonClasses} ${item.bgColor}`}>
-            {item.icon}
-            <h1 className="text-3xl font-semibold">{item.label}</h1>
-          </LinkButton>
+          <motion.div key={index} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: index * 0.2 }}>
+            <LinkButton href={item.href} className={`${baseButtonClasses} ${item.bgColor}`}>
+              {item.icon}
+              <h1 className="text-2xl font-semibold text-center mt-3">{item.label}</h1>
+            </LinkButton>
+          </motion.div>
         ))}
       </div>
     </div>

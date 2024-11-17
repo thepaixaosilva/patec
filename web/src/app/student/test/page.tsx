@@ -1,11 +1,13 @@
-import { Stack, Text } from '@chakra-ui/react'
-import { Button } from '@/components/ui/button'
-import Gabarito from '@/components/Gabarito'
+'use client'
 
-export const metadata = {
+import { Box, Stack, Text } from '@chakra-ui/react'
+import Answersheet from '@/components/Answersheet'
+
+/*export const metadata = {
   title: 'Folha de respostas',
-}
-const disciplinas = ['Matemática', 'Português', 'História']
+}*/
+
+const subject = ['Matemática', 'Português', 'História']
 
 export default function Test() {
   return (
@@ -15,14 +17,7 @@ export default function Test() {
           <Text textStyle="3xl">Folha de Respostas</Text>
         </Stack>
       </div>
-
-      <Gabarito disciplina={disciplinas}></Gabarito>
-
-      <div className="flex items-center justify-center m-4">
-        <Button className=" bg-blue-500 text-white px-4 py-2 rounded w-40 hover:scale-105 hover:bg-blue-600" type="submit">
-          Enviar respostas
-        </Button>
+      <Answersheet subject={subject}></Answersheet>
       </div>
-    </div>
   )
 }

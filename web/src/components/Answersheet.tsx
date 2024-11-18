@@ -39,7 +39,27 @@ const Answersheet: React.FC<HeaderProps> = ({ subject = [] }) => {
   })
 
   const onSubmit = handleSubmit((data) => {
-    console.log(data)
+      const groupedData = subject.map((discipline, index) => {
+        const disciplineAnswers = data.value.slice(index * 5, (index + 1) * 5);
+
+        return [discipline, ...disciplineAnswers]
+      })
+
+      for (const disciplineData of groupedData) {
+        const [discipline, ...answers] = disciplineData
+
+        const payload = {
+          answer1: answers[0],
+          answer2: answers[1],
+          answer3: answers[2],
+          answer4: answers[3],
+          answer5: answers[4],
+          //user: userId,
+          disciplina: discipline,
+        }
+        console.log(payload)
+      }
+ 
     setIsDialogOpen(false)
     setIsSucess(true)
     alert('Formulário enviado com sucesso!')

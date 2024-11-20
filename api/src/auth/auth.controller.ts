@@ -4,6 +4,7 @@ import { AuthService } from './auth.service'
 import { SignInDto } from './dto/sign-in.dto'
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { UsersService } from 'src/users/users.service'
+import { Public } from 'src/decorators/public.decorator'
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -15,6 +16,7 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
+  @Public()
   @ApiOperation({
     summary: 'User authentication',
     description: 'Authenticates a user using email and password credentials.',
@@ -51,6 +53,7 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Get('role')
+  @Public()
   @ApiOperation({
     summary: 'Get user role',
     description: 'Retrieves the role of the authenticated user.',

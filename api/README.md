@@ -1,101 +1,109 @@
 
-[TYPESCRIPT__BADGE]: https://skillicons.dev/icons?i=typescript
-[EXPRESS__BADGE]: https://skillicons.dev/icons?i=express
-[SQLITE_BADGE]: https://skillicons.dev/icons?i=sqlite
-
 <h1 align="center" style="font-weight: bold;">Patec-API 💻</h1>
 
-[![express][EXPRESS__BADGE]](https://expressjs.com)
-[![typescript][TYPESCRIPT__BADGE]]()
-[![sqlite][SQLITE_BADGE]]()
-
 <p align="center">
-    <a href="#started">Para começar</a> •
-    <!-- <a href="#routes">API Endpoints</a> • -->
-    <a href="#colab">Contribuidores</a>
-    <!-- <a href="#contribute">Contribute</a> -->
+    <a href="https://nestjs.com" target="_blank">
+        <img src="https://skillicons.dev/icons?i=nestjs" alt="NestJS" />
+    </a>
+    <a href="https://www.typescriptlang.org" target="_blank">
+        <img src="https://skillicons.dev/icons?i=typescript" alt="TypeScript" />
+    </a>
+    <a href="https://www.sqlite.org" target="_blank">
+        <img src="https://skillicons.dev/icons?i=sqlite" alt="SQLite" />
+    </a>
 </p>
 
-<!-- <p align="center">
-    <b>Simple description of what your project do or how to use it.</b>
-</p> -->
+<p align="center">
+    <a href="#about">Sobre</a> •
+    <a href="#technologies">Tecnologias</a> •
+    <a href="#started">Para começar</a> •
+    <a href="#features">Funcionalidades</a> •
+    <a href="#colab">Contribuidores</a>
+</p>
+
+<h2 id="about">📌 Sobre</h2>
+
+Patec-API é uma API RESTful construída com NestJS, TypeScript e SQLite. O projeto utiliza práticas modernas de desenvolvimento e inclui autenticação JWT, validação de dados, e documentação via Swagger. Versão atual: 0.0.1
+
+<h2 id="technologies">💻 Tecnologias</h2>
+
+- **[NestJS](https://nestjs.com/)** (^10.0.0) - Framework Node.js progressivo
+- **[TypeScript](https://www.typescriptlang.org/)** (^5.1.3) - Superset JavaScript com tipagem estática
+- **[SQLite](https://www.sqlite.org/)** (^5.1.7) - Banco de dados SQL embutido
+- **[TypeORM](https://typeorm.io/)** (^0.3.20) - ORM para TypeScript e JavaScript
+- **[JWT](https://jwt.io/)** (@nestjs/jwt ^10.2.0) - JSON Web Token para autenticação
+- **[Swagger](https://swagger.io/)** (@nestjs/swagger ^7.4.2) - Documentação da API
+- **[Jest](https://jestjs.io/)** (^29.5.0) - Framework de testes
 
 <h2 id="started">🚀 Para começar</h2>
 
-<!-- Here you describe how to run your project locally -->
+### Pré-requisitos
 
-<!-- <h3>Prerequisites</h3>
+- Node.js 18.x ou superior
+- npm ou yarn
+- Git
 
-Here you list all prerequisites necessary for running your project. For example:
-
-- [NodeJS](https://github.com/)
-- [Git 2](https://github.com) -->
-
-<h3>Clonando o repositório:</h3>
+### Clonando o repositório
 
 ```bash
 git clone https://github.com/matsilva03/Patec-API.git
+cd Patec-API
 ```
 
-<!-- <h3>Config .env variables</h2>
-
-Use the `.env.example` as reference to create your configuration file `.env` with your AWS Credentials
-
-```yaml
-NODE_AWS_REGION=us-east-1
-NODE_AWS_KEY_ID={YOUR_AWS_KEY_ID}
-NODE_AWS_SECRET={YOUR_AWS_SECRET}
-```
-
-<h3>Starting</h3>
-
-How to start your project
+### Instalando dependências
 
 ```bash
-cd project-name
-npm some-command-to-run
-``` -->
-
-<!-- <h2 id="routes">📍 API Endpoints</h2>
-
-Here you can list the main routes of your API, and what are their expected request bodies.
-​
-
-| route               | description
-|----------------------|-----------------------------------------------------
-| <kbd>GET /authenticate</kbd>     | retrieves user info see [response details](#get-auth-detail)
-| <kbd>POST /authenticate</kbd>     | authenticate user into the api see [request details](#post-auth-detail)
-
-<h3 id="get-auth-detail">GET /authenticate</h3>
-
-**RESPONSE**
-
-```json
-{
-  "name": "Fernanda Kipper",
-  "age": 20,
-  "email": "her-email@gmail.com"
-}
+npm install
+# ou
+yarn install
 ```
 
-<h3 id="post-auth-detail">POST /authenticate</h3>
+### Configurando o ambiente
 
-**REQUEST**
+Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
 
-```json
-{
-  "username": "fernandakipper",
-  "password": "4444444"
-}
+```env
+PORT=             # Porta da aplicação
+NUMBER_OF_ROUNDS= # Número de rounds para hash de senha
+ADMIN_NAME=       # Nome do administrador
+ADMIN_EMAIL=      # Email do administrador
+ADMIN_PASSWORD=   # Senha do administrador
 ```
 
-**RESPONSE**
+### Scripts disponíveis
 
-```json
-{
-  "token": "OwoMRHsaQwyAgVoc3OXmL1JhMVUYXGGBbCTK0GBgiYitwQwjf0gVoBmkbuyy0pSi"
-}
-``` -->
+```bash
+# desenvolvimento
+npm run start:dev          # Inicia o servidor em modo de desenvolvimento
+npm run start:debug        # Inicia o servidor em modo debug
+
+# formatação e linting
+npm run format            # Formata o código usando Prettier
+npm run lint             # Executa o ESLint
+
+# build e produção
+npm run build            # Compila o projeto
+npm run start:prod       # Inicia o servidor em modo de produção
+
+# testes
+npm run test            # Executa testes unitários
+npm run test:watch      # Executa testes em modo watch
+npm run test:cov        # Gera relatório de cobertura de testes
+npm run test:debug      # Executa testes em modo debug
+npm run test:e2e        # Executa testes end-to-end
+
+# utilitários
+npm run create-coordinator  # Cria um novo coordenador no sistema
+```
+
+<h2 id="features">🔥 Funcionalidades</h2>
+
+✅ Autenticação JWT com bcrypt
+✅ Validação de dados com class-validator
+✅ Documentação automática com Swagger
+✅ Testes unitários e E2E com Jest
+✅ Integração com SQLite via TypeORM
+✅ Sistema de coordenadores com CLI
 
 <h2 id="colab">🤝 Contribuidores</h2>
 
@@ -136,19 +144,17 @@ Here you can list the main routes of your API, and what are their expected reque
   </tr>
 </table>
 
-<!-- <h2 id="contribute">📫 Para Contribuir:</h2>
+<h2 id="contribute">📫 Contribuindo</h2>
 
-Here you will explain how other developers can contribute to your project. For example, explaining how can create their branches, which patterns to follow and how to open an pull request
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Faça commit das suas alterações (`git commit -m 'Add: some AmazingFeature'`)
+4. Faça push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
 
-1. `git clone https://github.com/Fernanda-Kipper/text-editor.git`
-2. `git checkout -b feature/NAME`
-3. Siga os padrões de *commit*
-4. Open a Pull Request explaining the problem solved or feature made, if exists, append screenshot of visual modifications and wait for the review! -->
+### Links úteis
 
-<h3>Links úteis</h3>
-
-- [Como escrever boas mensagens de commit: um guia prático do Git](https://www.freecodecamp.org/portuguese/news/como-escrever-boas-mensagens-de-commit-um-guia-pratico-do-git/) - por freeCodeCamp
-- [Padrão de commits](https://github.com/iuricode/padroes-de-commits?tab=readme-ov-file) - por Iuri Silva
-- [Git Cheat Sheet (pt-BR)](https://training.github.com/downloads/pt_BR/github-git-cheat-sheet.pdf) - por GitHub
-- [Mini Curso de Git](https://www.youtube.com/watch?v=ts-H3W1uLMM) - Por Código Fonte TV
-- [Manual do Aluno (Gestão Empresarial)](https://sites.google.com/view/manualdoaluno/avalia%C3%A7%C3%B5es)
+- [Convenções de commit](https://www.conventionalcommits.org/pt-br/v1.0.0/)
+- [Documentação do NestJS](https://docs.nestjs.com/)
+- [Guia de TypeScript](https://www.typescriptlang.org/docs/)
+- [Documentação do TypeORM](https://typeorm.io/)

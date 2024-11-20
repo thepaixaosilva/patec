@@ -38,6 +38,19 @@ export class TestDay {
   testType: TestType
 
   @ApiProperty({
+    example: 'uploads/test-days/arquivo123.pdf',
+    description: 'Caminho do arquivo no sistema de armazenamento',
+    required: false,
+  })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    comment: 'Caminho do arquivo no sistema de armazenamento',
+  })
+  filePath: string;
+
+  @ApiProperty({
     type: () => [AnswerKey],
     description: 'Gabaritos associados a esta avaliação',
     required: false,

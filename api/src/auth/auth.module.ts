@@ -3,6 +3,9 @@ import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
 import { UsersModule } from 'src/users/users.module'
 import { JwtModule } from '@nestjs/jwt'
+import { APP_GUARD } from '@nestjs/core'
+import { RolesGuard } from 'src/guards/roles.guard'
+import { AuthGuard } from 'src/guards/auth.guard'
 
 @Module({
   imports: [
@@ -13,7 +16,17 @@ import { JwtModule } from '@nestjs/jwt'
       signOptions: { expiresIn: '1d' },
     }),
   ],
-  providers: [AuthService],
+  providers: [
+    AuthService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard, // Aplicando o AuthGuard globalmente
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard, // Se você também precisar aplicar o RolesGuard globalmente
+    },
+  ],
   controllers: [AuthController],
   exports: [AuthService],
 })

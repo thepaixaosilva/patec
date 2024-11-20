@@ -7,20 +7,25 @@ export class AuthGuard implements CanActivate {
   constructor(private jwtService: JwtService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+
     const request = context.switchToHttp().getRequest()
+
     const token = this.extractTokenFromHeader(request)
     if (!token) {
       throw new UnauthorizedException()
     }
+
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      const payload = await this.jwtService.verify(token, {
         secret: `ecq/2B"/#8rC~3&FA1h@A24$pQ(Tp^oJCR+Lq%[Rp;;sa[,Zq9Z>?YK"Q9uw%/-mo99bp@:GE8Pif%0~z]tpf9/Y}|Tdn{|]"_0H`,
       })
 
       request['user'] = payload
-    } catch {
+    } catch (e) {
+      console.error('JWT verification error:', e)
       throw new UnauthorizedException()
     }
+
     return true
   }
 

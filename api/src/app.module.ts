@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { UsersModule } from './users/users.module'
@@ -9,10 +9,35 @@ import { TestDaysModule } from './test-days/test-days.module'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { config } from './ormconfig'
 import { AuthModule } from './auth/auth.module'
+import { UserSubjectModule } from './user-subject/user-subject.module'
+// import { CreateCoordinatorCommand } from './commands/create-coordinator.command'
+import { User } from './users/entities/user.entity'
+import { ConfigModule } from '@nestjs/config'
+import { LoggerMiddleware } from './middlewares/logger.middleware'
+import { AuthController } from './auth/auth.controller'
+import { AuthGuard } from './guards/auth.guard'
+import { AuthService } from './auth/auth.service'
 
 @Module({
-  imports: [TypeOrmModule.forRoot(config), UsersModule, SubjectsModule, AnswerKeysModule, StudentAnswersModule, TestDaysModule, AuthModule],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    TypeOrmModule.forRoot(config),
+    TypeOrmModule.forFeature([User]),
+    UsersModule,
+    SubjectsModule,
+    AnswerKeysModule,
+    StudentAnswersModule,
+    TestDaysModule,
+    AuthModule,
+    UserSubjectModule,
+  ],
+  controllers: [AppController, AuthController],
+  providers: [AppService, AuthService, AuthGuard],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes({ path: '*', method: RequestMethod.ALL }) // Aplica o middleware para todas as rotas
+  }
+}

@@ -8,20 +8,14 @@ import { Button, Input } from '@chakra-ui/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import { GiBookCover } from 'react-icons/gi'
-
-interface Subject {
-  subjectId: string
-  name: string
-  semester: number
-}
+import useSubjects from '@/hooks/queries/useSubjects'
+import api from '@/config/api'
 
 export default function SubjectManagement() {
-  const [data, setData] = useState<Subject[]>([
-    { subjectId: 'ADM0000', name: 'Administração', semester: 1 },
-    { subjectId: 'ECO0000', name: 'Economia', semester: 3 },
-    { subjectId: 'TST0000', name: 'Teste', semester: 4 },
-  ])
-  const [newSubject, setNewSubject] = useState<Subject>({ subjectId: '', name: '', semester: 0 })
+
+  const { subjects, setSubjects } = useSubjects()
+
+  const [newSubject, setNewSubject] = useState({ subjectId: '', name: '', semester: 0 })
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -37,7 +31,7 @@ export default function SubjectManagement() {
 
   const openEditModal = (index: number) => {
     setEditIndex(index)
-    setNewSubject(data[index])
+    setNewSubject(subjects[index])
     setIsEditModalOpen(true)
   }
   const closeEditModal = () => {
@@ -51,31 +45,46 @@ export default function SubjectManagement() {
   }
   const closeDeleteModal = () => setIsDeleteModalOpen(false)
 
-  // Função para adicionar um novo estudante
-  const handleAddStudent = () => {
+  const handleAddSubject = async () => {
     if (newSubject.subjectId && newSubject.name && newSubject.semester) {
-      setData((prevData) => [...prevData, newSubject])
-      closeModal() // Fecha o modal após adicionar
+      try {
+        const response = await api.post('/subjects', newSubject)
+        setSubjects((prevSubjects) => [...prevSubjects, response.data])
+        closeModal()
+      } catch (error) {
+        console.error('Erro ao adicionar disciplina: ', error)
+      }
     } else {
       alert('Preencha todos os campos!')
     }
   }
 
-  const handleEditSubject = () => {
+  const handleEditSubject = async () => {
     if (editIndex !== null && newSubject.subjectId && newSubject.name && newSubject.semester) {
-      const updatedData = [...data]
-      updatedData[editIndex] = newSubject
-      setData(updatedData)
-      closeEditModal()
+      try {
+        const response = await api.patch(`/subjects/${subjects[editIndex].subjectId}`, newSubject)
+        const updatedSubjects = [...subjects]
+        updatedSubjects[editIndex] = response.data
+        setSubjects(updatedSubjects)
+        closeEditModal()
+      } catch (error) {
+        console.error('Erro ao editar disciplina:', error)
+      }
     } else {
       alert('Preencha todos os campos!')
     }
   }
 
-  const handleDeleteSubject = () => {
+  const handleDeleteSubject = async () => {
     if (editIndex !== null) {
-      setData((prevData) => prevData.filter((_, i) => i !== editIndex))
-      closeDeleteModal()
+      try {
+        await api.delete(`/subjects/${subjects[editIndex].subjectId}`)
+        console.log(subjects[editIndex].subjectId)
+        setSubjects((prevSubjects) => prevSubjects.filter((_, i) => i !== editIndex))
+        closeDeleteModal()
+      } catch (error) {
+        console.error('Erro ao excluir disciplina:', error)
+      }
     }
   }
 
@@ -108,7 +117,7 @@ export default function SubjectManagement() {
           <span className="text-2xl">+</span> Adicionar Disciplina
         </Button>
 
-        {data.length === 0 ? (
+        {subjects.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-gray-500 bg-gray-50 rounded-xl">
             <GiBookCover className="text-5xl mb-4 opacity-50" />
             <p className="text-xl text-center">Nenhuma disciplina cadastrada.</p>
@@ -131,7 +140,7 @@ export default function SubjectManagement() {
                 </tr>
               </thead>
               <tbody>
-                {data.map((subject, index) => (
+                {subjects.map((subject, index) => (
                   <motion.tr
                     key={index}
                     className="hover:bg-blue-50/50 transition-colors duration-150"
@@ -195,7 +204,7 @@ export default function SubjectManagement() {
                 />
                 <div className="flex justify-end">
                   <Button
-                    onClick={handleAddStudent}
+                    onClick={handleAddSubject}
                     className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 text-lg font-semibold hover:scale-105"
                   >
                     Adicionar
@@ -217,6 +226,7 @@ export default function SubjectManagement() {
                   value={newSubject.subjectId}
                   onChange={(e) => setNewSubject({ ...newSubject, subjectId: e.target.value })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  disabled
                 />
                 <Input
                   type="text"

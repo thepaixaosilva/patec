@@ -5,10 +5,11 @@ import { Stack, Text } from '@chakra-ui/react'
 import { z } from 'zod'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface HeaderProps {
-  subject: string[]
+  subject: string[],
+  testId: number,
 }
 
 const items = [
@@ -25,7 +26,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
-const Answersheet: React.FC<HeaderProps> = ({ subject = [] }) => {
+const Answerkeys: React.FC<HeaderProps> = ({ subject = [], testId}) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSucess, setIsSucess] = useState(false)
 
@@ -56,6 +57,7 @@ const Answersheet: React.FC<HeaderProps> = ({ subject = [] }) => {
           answer5: answers[4],
           //user: userId,
           disciplina: discipline,
+          testId,
         }
         console.log(payload)
       }
@@ -66,6 +68,23 @@ const Answersheet: React.FC<HeaderProps> = ({ subject = [] }) => {
   })
 
   const handleDialogClose = () => setIsDialogOpen(false)
+  
+  {/*useEffect(() => {
+    // Suponha que fetchAnswerKey seja uma função que busca o gabarito no back-end
+    if (testId) {
+      fetchAnswerKey(testId).then((answerKey: { answer1: string; answer2: string; answer3: string; answer4: string; answer5: string }) => {
+        reset({
+          value: [
+            answerKey.answer1,
+            answerKey.answer2,
+            answerKey.answer3,
+            answerKey.answer4,
+            answerKey.answer5,
+          ],
+        });
+      });
+    }
+  }, [testId]);*/}
   
   return (
     <form id="answersForm" onSubmit={onSubmit} className="flex flex-col gap-4 mx-auto w-[475px]">
@@ -151,4 +170,4 @@ const Answersheet: React.FC<HeaderProps> = ({ subject = [] }) => {
     </form>
   )
 }
-export default Answersheet
+export default Answerkeys

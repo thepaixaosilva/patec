@@ -5,13 +5,12 @@ import { Stack, Text } from '@chakra-ui/react'
 import { z } from 'zod'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Alert } from './ui/alert'
 import { CloseButton } from './ui/close-button'
 
 interface HeaderProps {
-  subject: string[],
-  testDay?: Date,
+  subject: string[]
 }
 
 const items = [
@@ -27,7 +26,7 @@ const formSchema = z.object({
 })
 type FormValues = z.infer<typeof formSchema>
 
-const AnswerKeys: React.FC<HeaderProps> = ({ subject = [], testDay }) => {
+const StudentTest: React.FC<HeaderProps> = ({ subject = [] }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSucess, setIsSucess] = useState(false)
   const handleDialogClose = () => setIsDialogOpen(false)
@@ -54,13 +53,13 @@ const AnswerKeys: React.FC<HeaderProps> = ({ subject = [], testDay }) => {
         answer5: answers[4],
         //user: userId,
         disciplina: subject,
-        testDay: testDay, //verificar se é o dia do teste ou se é o id que precisa vincular
+        //aqui, precisa puxar o answerkey com base na disciplina e no dia da avaliação
       }
-      console.log(payload)
+      console.log(payload) //aqui seria implementado a integração com o back-end
     }
     setIsDialogOpen(false)
     setIsSucess(true)
-    alert('Formulário enviado com sucesso!')
+    setIsAlertVisible(true)
   })
 
   return (
@@ -93,8 +92,7 @@ const AnswerKeys: React.FC<HeaderProps> = ({ subject = [], testDay }) => {
                           value={field.value}
                           onValueChange={({ value }) => {
                             field.onChange(value)
-                          }}
-                        >
+                          }}>
                           <HStack gap="6">
                             {items.map((item) => (
                               <Radio key={item.value} value={item.value}>
@@ -166,5 +164,4 @@ const AnswerKeys: React.FC<HeaderProps> = ({ subject = [], testDay }) => {
     </div>
   )
 }
-
-export default AnswerKeys
+export default StudentTest

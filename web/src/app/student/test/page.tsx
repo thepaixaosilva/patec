@@ -1,13 +1,10 @@
 'use client'
 
-import { Box, Stack, Text } from '@chakra-ui/react'
-import Answersheet from '@/components/Answersheet'
+import { Stack, Text } from '@chakra-ui/react'
+import StudentTest from '@/components/StudentTest'
 
-/*export const metadata = {
-  title: 'Folha de respostas',
-}*/
-
-const subject = ['Matemática', 'Português', 'História']
+/*aqui precisa puxar as disciplinas que o usuário está matriculado*/
+const subject = ['Matemática']
 
 export default function Test() {
   return (
@@ -17,7 +14,7 @@ export default function Test() {
           <Text textStyle="3xl">Folha de Respostas</Text>
         </Stack>
       </div>
-      <Answersheet subject={subject}></Answersheet>
+      <StudentTest subject={subject}></StudentTest>
       </div>
   )
 }

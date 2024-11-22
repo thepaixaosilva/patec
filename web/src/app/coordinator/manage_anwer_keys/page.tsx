@@ -2,11 +2,11 @@
 import { useState } from 'react'
 import { FaArrowLeft } from 'react-icons/fa6'
 import Modal from '@/components/Modal'
-import { Button, Input } from '@chakra-ui/react'
+import { Button } from '@chakra-ui/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import { GiBookCover } from 'react-icons/gi'
-import Answerkeys from '@/components/Answerkeys'
+import AnswerKeys from '@/components/Answerkeys'
 
 interface Test {
   testId: number
@@ -17,24 +17,20 @@ interface Test {
 }
 
 export default function AnswerKey() {
+
   const [data, setData] = useState<Test[]>([
     { testId: 1, date: new Date('2024-01-01'), testType: '1º Semestre', answerKeys: ['A', 'B']},
     { testId: 2, date: new Date('2024-03-15'), testType: '2º Semestre'},
     { testId: 3, date: new Date('2024-06-20'), testType: 'Final' },
   ])
 
-  const [isGabaritoModalOpen, setIsGabaritoModalOpen] = useState(false)
-
-  const openGabaritoModal = () => setIsGabaritoModalOpen(true)
-  const closeGabaritoModal = () => setIsGabaritoModalOpen(false)
-
   const [isModalOpen, setIsModalOpen] = useState(false)
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => {
     setIsModalOpen(false)
   }
-  const [selectedTestId, setSelectedTestId] = useState<number | null>(null)
 
+  const [selectedTestId, setSelectedTestId] = useState<number | null>(null)
   const handleTestSelection = (testId: number) => {
     setSelectedTestId(testId);
   };
@@ -43,6 +39,11 @@ export default function AnswerKey() {
     setSelectedTestId(testId)
     setIsModalOpen(true)
   }
+  
+  const [isGabaritoModalOpen, setIsGabaritoModalOpen] = useState(false)
+  const openGabaritoModal = () => setIsGabaritoModalOpen(true)
+  const closeGabaritoModal = () => setIsGabaritoModalOpen(false)
+
   const subject = ['Matemática', 'Português', 'História']
 
   return (
@@ -72,11 +73,6 @@ export default function AnswerKey() {
         >
           Cadastrar Gabarito
         </Button>
-
-        <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-          <tr></tr>
-        </thead>
-        <tbody></tbody>
 
         <AnimatePresence>
           {isGabaritoModalOpen && (
@@ -126,13 +122,13 @@ export default function AnswerKey() {
         <Modal isOpen={isModalOpen} onClose={closeModal} title="Cadastrar Gabarito">
           <motion.div>
             <p>Avaliação Selecionada: {selectedTestId}</p>
-            {/* Campos para cadastrar o gabarito */}
             {selectedTestId !== null && (
-            <Answerkeys subject={subject} testId = {selectedTestId}></Answerkeys>
+            <AnswerKeys subject={subject}></AnswerKeys>
             )}
           </motion.div>
         </Modal>
 
+        {/*buscar avaliações com gabarito cadastrado*/}
         {data.filter((test) => test.answerKeys && test.answerKeys.length > 0) && (
           <div className="mt-8">
             <h2 className="text-xl font-bold mb-4">Avaliações com Gabaritos</h2>
@@ -155,8 +151,9 @@ export default function AnswerKey() {
                       <td className="border border-gray-300 p-2">{test.testType}</td>
                       <td className="border border-gray-300 p-2 text-center">
                         <Button onClick={() => openCadastrarGabaritoModal(test.testId)} className="text-blue-500 hover:text-blue-700">
-                          Editar
+                          Consultar
                         </Button>
+                        {/*aqui precisava exibir o gabarito que já foi cadastrado*/}
                       </td>
                     </tr>
                   ))}

@@ -8,7 +8,7 @@ import { Button, Input } from '@chakra-ui/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import { GiBookCover } from 'react-icons/gi'
-import useSubjects from '@/hooks/useSubjects'
+import useSubjects from '@/hooks/queries/useSubjects'
 import api from '@/config/api'
 
 export default function SubjectManagement() {

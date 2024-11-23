@@ -6,20 +6,21 @@ import { Button } from '@chakra-ui/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import { GiBookCover } from 'react-icons/gi'
-import AnswerKeys from '@/components/Answerkeys'
+import AnswerKeys from '@/components/AnswerKeys'
 
 interface Test {
   testId: number
   date: Date
   testType: string
   file?: File
-  answerKeys?: string[] //aqui seriam os gabaritos cadastrados (entidade answerKey[])
+  answerKeys?: number  //aqui seriam os gabaritos cadastrados (entidade answerKey[])
 }
+const subject = ['Matemática', 'Português', 'História'] //aqui precisa puxar todas as disciplinas cadastradas
 
 export default function AnswerKey() {
 
   const [data, setData] = useState<Test[]>([
-    { testId: 1, date: new Date('2024-01-01'), testType: '1º Semestre', answerKeys: ['A', 'B']},
+    { testId: 1, date: new Date('2024-01-01'), testType: '1º Semestre', answerKeys: 1},
     { testId: 2, date: new Date('2024-03-15'), testType: '2º Semestre'},
     { testId: 3, date: new Date('2024-06-20'), testType: 'Final' },
   ])
@@ -43,8 +44,6 @@ export default function AnswerKey() {
   const [isGabaritoModalOpen, setIsGabaritoModalOpen] = useState(false)
   const openGabaritoModal = () => setIsGabaritoModalOpen(true)
   const closeGabaritoModal = () => setIsGabaritoModalOpen(false)
-
-  const subject = ['Matemática', 'Português', 'História']
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-200 via-pink-200 to-red-200 py-8">
@@ -129,7 +128,7 @@ export default function AnswerKey() {
         </Modal>
 
         {/*buscar avaliações com gabarito cadastrado*/}
-        {data.filter((test) => test.answerKeys && test.answerKeys.length > 0) && (
+        {data.filter((test) => test.answerKeys && test.answerKeys > 0) && (
           <div className="mt-8">
             <h2 className="text-xl font-bold mb-4">Avaliações com Gabaritos</h2>
             <table className="w-full border-collapse border border-gray-200">

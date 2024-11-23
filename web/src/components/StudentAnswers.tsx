@@ -8,6 +8,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { Alert } from './ui/alert'
 import { CloseButton } from './ui/close-button'
+import useStudentAnswers from '@/hooks/queries/useStudentAnswers'
+import { useCreateStudentAnswer } from '@/hooks/mutations/mutationStudentAnswers'
 
 interface HeaderProps {
   subject: string[]
@@ -26,18 +28,28 @@ const formSchema = z.object({
 })
 type FormValues = z.infer<typeof formSchema>
 
-const StudentTest: React.FC<HeaderProps> = ({ subject = [] }) => {
+const StudentAnswers: React.FC<HeaderProps> = ({ subject = [] }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSucess, setIsSucess] = useState(false)
   const handleDialogClose = () => setIsDialogOpen(false)
   const [isAlertVisible, setIsAlertVisible] = useState(false)
 
-  const { control, handleSubmit, formState: { errors } } = useForm<FormValues>({
+  //integração com o back
+  const { data: studentAnswers } = useStudentAnswers()
+  const { 
+    reset,
+    register,
+    control,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { value: [] },
   })
 
-  const onSubmit = handleSubmit((data) => {
+  const { mutate, isLoading, isError } = useCreateStudentAnswer()
+
+  const onSubmit = handleSubmit((data)  => {
     const groupedData = subject.map((subject, index) => {
       const subjectAnswers = data.value.slice(index * 5, (index + 1) * 5);
       return [subject, ...subjectAnswers]
@@ -164,4 +176,4 @@ const StudentTest: React.FC<HeaderProps> = ({ subject = [] }) => {
     </div>
   )
 }
-export default StudentTest
+export default StudentAnswers

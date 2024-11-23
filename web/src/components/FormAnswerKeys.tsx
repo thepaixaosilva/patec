@@ -5,13 +5,16 @@ import { Stack, Text } from '@chakra-ui/react'
 import { z } from 'zod'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Alert } from './ui/alert'
 import { CloseButton } from './ui/close-button'
-import { useCreateStudentAnswer } from '@/hooks/mutations/mutationStudentAnswers'
+import { useCreateAnswerKeys, useUpdateAnswerKeys } from '@/hooks/mutations/mutationAnswerKeys'
+import useAnswerKeys from '@/hooks/queries/useAnswerKeys'
+import { Subjects } from '@/app/coordinator/manage_anwer_keys/page'
 
 interface HeaderProps {
-  subject: string[]
+  subjects: Subjects[],
+  testId: number,
 }
 
 const items = [
@@ -27,48 +30,80 @@ const formSchema = z.object({
 })
 type FormValues = z.infer<typeof formSchema>
 
-const StudentAnswers: React.FC<HeaderProps> = ({ subject = [] }) => {
+const FormAnswerKeys: React.FC<HeaderProps> = ({ subjects= [], testId }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isAlertVisible, setIsAlertVisible] = useState(false)
   const handleDialogClose = () => setIsDialogOpen(false)
 
-  const { 
+  const subjectsName = subjects.map((subject) => subject.name)
+  const subjectsId = subjects.map((subject) => subject.id)
+  
+  const {
     reset,
     control,
-    handleSubmit,
-    formState: { errors }
+    handleSubmit, 
+    formState: { errors } 
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { value: [] },
   })
 
-  const { mutate, isError } = useCreateStudentAnswer()
+  const { mutate: createAnswerKeys, isError } = useCreateAnswerKeys()
+  const { mutate: updateAnswerKeys } = useUpdateAnswerKeys()
+  const { data: savedAnswers, } = useAnswerKeys(testId)
 
-  const onSubmit = handleSubmit((data)  => {
-    const groupedData = subject.map((subject, index) => {
+   useEffect(() => {
+    if (savedAnswers) {
+      const initialValues = subjectsId.flatMap((subjectId) => {
+        const answerSet = savedAnswers.find((answer) => answer.subjectId === subjectId)
+        return [
+          answerSet?.answer1,
+          answerSet?.answer2,
+          answerSet?.answer3,
+          answerSet?.answer4,
+          answerSet?.answer5,
+        ]
+      })
+      reset({ value: initialValues })
+    }
+  }, [savedAnswers, reset, subjectsId])
+
+  const onSubmit = handleSubmit((data) => {
+    const groupedData = subjectsId.map((subjectsId, index) => {
       const subjectAnswers = data.value.slice(index * 5, (index + 1) * 5);
-      return [subject, ...subjectAnswers]
+      return [subjectsId, ...subjectAnswers]
     })
 
     for (const subjectData of groupedData) {
-      const [subject, ...answers] = subjectData
+      const [subjectsId, ...answers] = subjectData
+      const answerKeysExists = Array.isArray(savedAnswers) ? savedAnswers.find((answer) => 
+        answer.subjectId === subjectsId) : null
+      
       const payload = {
-        answer1: answers[0],
-        answer2: answers[1],
-        answer3: answers[2],
-        answer4: answers[3],
-        answer5: answers[4],
-        user: 1, //userId do usuário logado,
-        answerKey: 1, //aqui, precisa puxar o answerkey com base na disciplina e no dia da avaliação
+        answer1: String(answers[0]),
+        answer2: String(answers[1]),
+        answer3: String(answers[2]),
+        answer4: String(answers[3]),
+        answer5: String(answers[4]),
+        testDay: Number(testId),
+        subjectId: Number(subjectsId),
       }
-      mutate(payload, {
+
+      if (answerKeysExists?.id) {
+        updateAnswerKeys({
+          id: answerKeysExists.id, 
+          ...payload 
+        })
+      } else {
+      createAnswerKeys(payload, {
         onSuccess: () => {
-          console.log(`Resposta enviada com sucesso para a disciplina ${subject}`)
+          console.log(`Gabarito oficial da disciplina ${subjectsId} cadastrado com sucesso!`)
         },
         onError: (error) => {
-          console.error(`Erro ao enviar respostas para ${subject}:`, error)
+          console.error(`Erro ao cadastrar gabarito da disciplina ${subjectsId}:`, error)
         }
       })
+      }
       if (!isError) {
         reset()
       }
@@ -82,12 +117,12 @@ const StudentAnswers: React.FC<HeaderProps> = ({ subject = [] }) => {
       <form id="answersForm" onSubmit={onSubmit} className="flex flex-col gap-4 mx-auto w-[475px]">
         <Fieldset.Root invalid={!!errors.value}>
 
-          {subject.map((subject, subjectIndex) => (
+          {subjects.map((__, subjectIndex) => (
             <div key={subjectIndex} className="mb-6">
               <div className="flex items-center justify-start m-2">
                 <Stack>
                   <Text fontWeight="bold" fontSize="lg">
-                    {subject}
+                    {subjectsName[subjectIndex]}
                   </Text>
                 </Stack>
               </div>
@@ -107,7 +142,8 @@ const StudentAnswers: React.FC<HeaderProps> = ({ subject = [] }) => {
                           value={field.value}
                           onValueChange={({ value }) => {
                             field.onChange(value)
-                          }}>
+                          }}
+                        >
                           <HStack gap="6">
                             {items.map((item) => (
                               <Radio key={item.value} value={item.value}>
@@ -179,4 +215,5 @@ const StudentAnswers: React.FC<HeaderProps> = ({ subject = [] }) => {
     </div>
   )
 }
-export default StudentAnswers
+
+export default FormAnswerKeys

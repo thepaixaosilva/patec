@@ -13,3 +13,27 @@ export const useCreateAnswerKeys = () => {
     }
   })
 }
+
+const updateAnswerKeys = (answerKeys: AnswerKeys) => api.put<AnswerKeys>(`/answer-keys/${answerKeys.id}`, answerKeys)
+
+export const useUpdateAnswerKeys = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation((answerKeys: AnswerKeys) => updateAnswerKeys(answerKeys), {
+    onSuccess: () => {
+      queryClient.invalidateQueries('answerKeys')
+    }
+  })
+}
+
+const deleteAnswerKeys = (id: number) => api.delete<AnswerKeys>(`/answer-keys/${id}`)
+
+export const useDeleteAnswerKeys = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation((id: number) => deleteAnswerKeys(id), {
+    onSuccess: () => {
+      queryClient.invalidateQueries('answerKeys')
+    }
+  })
+}

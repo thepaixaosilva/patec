@@ -1,5 +1,5 @@
 export interface StudentAnswers {
-    //id: number > vai ser gerado automático no banco
+    id?: number //vai ser gerado automático no banco
     score?: number
     answer1: string
     answer2: string

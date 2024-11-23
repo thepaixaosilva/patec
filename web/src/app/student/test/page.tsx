@@ -1,9 +1,9 @@
 'use client'
 
 import { Stack, Text } from '@chakra-ui/react'
-import StudentAnswers from '@/components/StudentAnswers'
+import FormStudentAnswers from '@/components/FormStudentAnswers'
 
-/*aqui precisa puxar as disciplinas que o usuário está matriculado*/
+//PENDENTE: puxar as disciplinas que o usuário está matriculado
 const subject = ['Matemática']
 
 export default function Test() {
@@ -14,7 +14,7 @@ export default function Test() {
           <Text textStyle="3xl">Folha de Respostas</Text>
         </Stack>
       </div>
-      <StudentAnswers subject={subject}></StudentAnswers>
+      <FormStudentAnswers subject={subject}></FormStudentAnswers>
       </div>
   )
 }

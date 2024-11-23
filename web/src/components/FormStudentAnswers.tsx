@@ -5,15 +5,13 @@ import { Stack, Text } from '@chakra-ui/react'
 import { z } from 'zod'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Alert } from './ui/alert'
 import { CloseButton } from './ui/close-button'
-import { useCreateAnswerKeys } from '@/hooks/mutations/mutationAnswerKeys'
-import useAnswerKeys from '@/hooks/queries/useAnswerKeys'
+import { useCreateStudentAnswer } from '@/hooks/mutations/mutationStudentAnswers'
 
 interface HeaderProps {
-  subjectUser: string[],
-  testDay?: number,
+  subject: string[]
 }
 
 const items = [
@@ -29,64 +27,47 @@ const formSchema = z.object({
 })
 type FormValues = z.infer<typeof formSchema>
 
-const AnswerKeys: React.FC<HeaderProps> = ({ subjectUser = [], testDay }) => {
+const FormStudentAnswers: React.FC<HeaderProps> = ({ subject = [] }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isAlertVisible, setIsAlertVisible] = useState(false)
   const handleDialogClose = () => setIsDialogOpen(false)
 
-  const {
+  const { 
     reset,
     control,
-    handleSubmit, 
-    formState: { errors } 
+    handleSubmit,
+    formState: { errors }
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { value: [] },
   })
 
-  const { data: savedAnswers, } = useAnswerKeys()
-  const { mutate, isError } = useCreateAnswerKeys()
+  const { mutate, isError } = useCreateStudentAnswer()
 
-   // Atualiza os valores do formulário com as respostas existentes
-   useEffect(() => {
-    if (savedAnswers) {
-      const initialValues = subjectUser.flatMap((_, index) => {
-        const answerSet = savedAnswers.find((answer) => answer.subject === subjectUser[index + 1])
-        return [
-          answerSet?.answer1 || '',
-          answerSet?.answer2 || '',
-          answerSet?.answer3 || '',
-          answerSet?.answer4 || '',
-          answerSet?.answer5 || '',
-        ]
-      })
-      reset({ value: initialValues })
-    }
-  }, [savedAnswers, reset, subjectUser])
-  
-  const onSubmit = handleSubmit((data) => {
-    const groupedData = subjectUser.map((subjectUser, index) => {
+  const onSubmit = handleSubmit((data)  => {
+    const groupedData = subject.map((subject, index) => {
       const subjectAnswers = data.value.slice(index * 5, (index + 1) * 5);
-      return [subjectUser, ...subjectAnswers]
+      return [subject, ...subjectAnswers]
     })
 
     for (const subjectData of groupedData) {
-      const [subjectUser, ...answers] = subjectData
+      const [subject, ...answers] = subjectData
       const payload = {
+        score: 10, //PENDENTE: vincular primeiro o answerKey para conseguir calcular
         answer1: answers[0],
         answer2: answers[1],
         answer3: answers[2],
         answer4: answers[3],
         answer5: answers[4],
-        testDay: 1, //precisa puxar o id da avaliação selecionada
-        subject: subjectUser
+        user: 1, //PENDENTE: userid do usuário logado,
+        answerKey: 1, //PENDENTE: aqui, precisa puxar o answerkey com base na disciplina e no dia da avaliação
       }
       mutate(payload, {
         onSuccess: () => {
-          console.log(`Gabarito oficial da disciplina ${subjectUser} cadastrado com sucesso!`)
+          console.log(`Resposta enviada com sucesso para a disciplina ${subject}`)
         },
         onError: (error) => {
-          console.error(`Erro ao cadastrar gabarito da disciplina ${subjectUser}:`, error)
+          console.error(`Erro ao enviar respostas para ${subject}:`, error)
         }
       })
       if (!isError) {
@@ -102,12 +83,12 @@ const AnswerKeys: React.FC<HeaderProps> = ({ subjectUser = [], testDay }) => {
       <form id="answersForm" onSubmit={onSubmit} className="flex flex-col gap-4 mx-auto w-[475px]">
         <Fieldset.Root invalid={!!errors.value}>
 
-          {subjectUser.map((subjectUser, subjectIndex) => (
+          {subject.map((subject, subjectIndex) => (
             <div key={subjectIndex} className="mb-6">
               <div className="flex items-center justify-start m-2">
                 <Stack>
                   <Text fontWeight="bold" fontSize="lg">
-                    {subjectUser}
+                    {subject}
                   </Text>
                 </Stack>
               </div>
@@ -127,8 +108,7 @@ const AnswerKeys: React.FC<HeaderProps> = ({ subjectUser = [], testDay }) => {
                           value={field.value}
                           onValueChange={({ value }) => {
                             field.onChange(value)
-                          }}
-                        >
+                          }}>
                           <HStack gap="6">
                             {items.map((item) => (
                               <Radio key={item.value} value={item.value}>
@@ -200,5 +180,4 @@ const AnswerKeys: React.FC<HeaderProps> = ({ subjectUser = [], testDay }) => {
     </div>
   )
 }
-
-export default AnswerKeys
+export default FormStudentAnswers

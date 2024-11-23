@@ -8,7 +8,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { Alert } from './ui/alert'
 import { CloseButton } from './ui/close-button'
-import useStudentAnswers from '@/hooks/queries/useStudentAnswers'
 import { useCreateStudentAnswer } from '@/hooks/mutations/mutationStudentAnswers'
 
 interface HeaderProps {
@@ -30,15 +29,11 @@ type FormValues = z.infer<typeof formSchema>
 
 const StudentAnswers: React.FC<HeaderProps> = ({ subject = [] }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isSucess, setIsSucess] = useState(false)
-  const handleDialogClose = () => setIsDialogOpen(false)
   const [isAlertVisible, setIsAlertVisible] = useState(false)
+  const handleDialogClose = () => setIsDialogOpen(false)
 
-  //integração com o back
-  const { data: studentAnswers } = useStudentAnswers()
   const { 
     reset,
-    register,
     control,
     handleSubmit,
     formState: { errors }
@@ -47,7 +42,7 @@ const StudentAnswers: React.FC<HeaderProps> = ({ subject = [] }) => {
     defaultValues: { value: [] },
   })
 
-  const { mutate, isLoading, isError } = useCreateStudentAnswer()
+  const { mutate, isError } = useCreateStudentAnswer()
 
   const onSubmit = handleSubmit((data)  => {
     const groupedData = subject.map((subject, index) => {
@@ -63,14 +58,22 @@ const StudentAnswers: React.FC<HeaderProps> = ({ subject = [] }) => {
         answer3: answers[2],
         answer4: answers[3],
         answer5: answers[4],
-        //user: userId,
-        disciplina: subject,
-        //aqui, precisa puxar o answerkey com base na disciplina e no dia da avaliação
+        user: 1, //userId do usuário logado,
+        answerKey: 1, //aqui, precisa puxar o answerkey com base na disciplina e no dia da avaliação
       }
-      console.log(payload) //aqui seria implementado a integração com o back-end
+      mutate(payload, {
+        onSuccess: () => {
+          console.log(`Resposta enviada com sucesso para a disciplina ${subject}`)
+        },
+        onError: (error) => {
+          console.error(`Erro ao enviar respostas para ${subject}:`, error)
+        }
+      })
+      if (!isError) {
+        reset()
+      }
     }
     setIsDialogOpen(false)
-    setIsSucess(true)
     setIsAlertVisible(true)
   })
 

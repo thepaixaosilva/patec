@@ -122,7 +122,7 @@ export default function AnswerKey() {
           <motion.div>
             <p>Avaliação Selecionada: {selectedTestId}</p>
             {selectedTestId !== null && (
-            <AnswerKeys subject={subject}></AnswerKeys>
+            <AnswerKeys subjectUser={subject}></AnswerKeys>
             )}
           </motion.div>
         </Modal>

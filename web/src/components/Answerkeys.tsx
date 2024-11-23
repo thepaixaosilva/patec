@@ -8,10 +8,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { Alert } from './ui/alert'
 import { CloseButton } from './ui/close-button'
+import { useCreateAnswerKeys } from '@/hooks/mutations/mutationAnswerKeys'
+import useAnswerKeys from '@/hooks/queries/useAnswerKeys'
 
 interface HeaderProps {
-  subject: string[],
-  testDay?: Date,
+  subjectUser: string[],
+  testDay?: number,
 }
 
 const items = [
@@ -27,40 +29,72 @@ const formSchema = z.object({
 })
 type FormValues = z.infer<typeof formSchema>
 
-const AnswerKeys: React.FC<HeaderProps> = ({ subject = [], testDay }) => {
+const AnswerKeys: React.FC<HeaderProps> = ({ subjectUser = [], testDay }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isSucess, setIsSucess] = useState(false)
-  const handleDialogClose = () => setIsDialogOpen(false)
   const [isAlertVisible, setIsAlertVisible] = useState(false)
+  const handleDialogClose = () => setIsDialogOpen(false)
 
-  const { control, handleSubmit, formState: { errors } } = useForm<FormValues>({
+  const {
+    reset,
+    control,
+    handleSubmit, 
+    formState: { errors } 
+  } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { value: [] },
   })
 
+  const { data: savedAnswers, } = useAnswerKeys()
+  const { mutate, isError } = useCreateAnswerKeys()
+
+   // Atualiza os valores do formulário com as respostas existentes
+   useEffect(() => {
+    if (savedAnswers) {
+      const initialValues = subjectUser.flatMap((_, index) => {
+        const answerSet = savedAnswers.find((answer) => answer.subject === subjectUser[index + 1])
+        return [
+          answerSet?.answer1 || '',
+          answerSet?.answer2 || '',
+          answerSet?.answer3 || '',
+          answerSet?.answer4 || '',
+          answerSet?.answer5 || '',
+        ]
+      })
+      reset({ value: initialValues })
+    }
+  }, [savedAnswers, reset, subjectUser])
+  
   const onSubmit = handleSubmit((data) => {
-    const groupedData = subject.map((subject, index) => {
+    const groupedData = subjectUser.map((subjectUser, index) => {
       const subjectAnswers = data.value.slice(index * 5, (index + 1) * 5);
-      return [subject, ...subjectAnswers]
+      return [subjectUser, ...subjectAnswers]
     })
 
     for (const subjectData of groupedData) {
-      const [subject, ...answers] = subjectData
+      const [subjectUser, ...answers] = subjectData
       const payload = {
         answer1: answers[0],
         answer2: answers[1],
         answer3: answers[2],
         answer4: answers[3],
         answer5: answers[4],
-        //user: userId,
-        disciplina: subject,
-        testDay: testDay, //verificar se é o dia do teste ou se é o id que precisa vincular
+        testDay: 1, //precisa puxar o id da avaliação selecionada
+        subject: subjectUser
       }
-      console.log(payload)
+      mutate(payload, {
+        onSuccess: () => {
+          console.log(`Gabarito oficial da disciplina ${subjectUser} cadastrado com sucesso!`)
+        },
+        onError: (error) => {
+          console.error(`Erro ao cadastrar gabarito da disciplina ${subjectUser}:`, error)
+        }
+      })
+      if (!isError) {
+        reset()
+      }
     }
     setIsDialogOpen(false)
-    setIsSucess(true)
-    alert('Formulário enviado com sucesso!')
+    setIsAlertVisible(true)
   })
 
   return (
@@ -68,12 +102,12 @@ const AnswerKeys: React.FC<HeaderProps> = ({ subject = [], testDay }) => {
       <form id="answersForm" onSubmit={onSubmit} className="flex flex-col gap-4 mx-auto w-[475px]">
         <Fieldset.Root invalid={!!errors.value}>
 
-          {subject.map((subject, subjectIndex) => (
+          {subjectUser.map((subjectUser, subjectIndex) => (
             <div key={subjectIndex} className="mb-6">
               <div className="flex items-center justify-start m-2">
                 <Stack>
                   <Text fontWeight="bold" fontSize="lg">
-                    {subject}
+                    {subjectUser}
                   </Text>
                 </Stack>
               </div>

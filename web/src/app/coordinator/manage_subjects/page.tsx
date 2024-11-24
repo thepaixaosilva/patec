@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { FaPencilAlt } from 'react-icons/fa'
 import { FaRegTrashCan } from 'react-icons/fa6'
 import { FaArrowLeft } from 'react-icons/fa6'
-import Modal from '@/components/Modal'
+import Modal from '@/components/shared/Modal'
 import { Button, Input } from '@chakra-ui/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
@@ -79,7 +79,7 @@ export default function SubjectManagement() {
     if (editIndex !== null) {
       try {
         await api.delete(`/subjects/${subjects[editIndex].subjectId}`)
-        console.log(subjects[editIndex].subjectId)
+        // console.log(subjects[editIndex].subjectId)
         setSubjects((prevSubjects) => prevSubjects.filter((_, i) => i !== editIndex))
         closeDeleteModal()
       } catch (error) {

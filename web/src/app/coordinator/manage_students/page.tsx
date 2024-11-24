@@ -8,20 +8,17 @@ import { Button, Input } from '@chakra-ui/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import { PiStudentFill } from 'react-icons/pi'
-
-interface Student {
-  ra: string
-  name: string
-  email: string
-}
+import useStudents from '@/hooks/queries/useStudents'
+import { useCreateStudent, useUpdateStudent, useDeleteStudent } from '@/hooks/mutations/mutationUsers'
+import { CreateStudent } from '@/interfaces/users'
 
 export default function StudentManagement() {
-  const [data, setData] = useState<Student[]>([
-    { ra: '105', name: 'Matheus', email: 'teste@email.com' },
-    { ra: '106', name: 'João', email: 'joao@email.com' },
-    { ra: '107', name: 'Maria', email: 'maria@email.com' },
-  ])
-  const [newStudent, setNewStudent] = useState<Student>({ ra: '', name: '', email: '' })
+  const { data: students, refetch } = useStudents() // Use refetch here to reload data
+  const { mutate: createStudent } = useCreateStudent()
+  const { mutate: updateStudent } = useUpdateStudent()
+  const { mutate: deleteStudent } = useDeleteStudent()
+
+  const [newStudent, setNewStudent] = useState<CreateStudent>({ ra: '', name: '', email: '', password: '', role: 'student' })
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -31,17 +28,25 @@ export default function StudentManagement() {
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => {
     setIsModalOpen(false)
-    setNewStudent({ ra: '', name: '', email: '' })
+    setNewStudent({ ra: '', name: '', email: '', password: '', role: 'student' })
   }
 
   const openEditModal = (index: number) => {
-    setEditIndex(index)
-    setNewStudent(data[index])
-    setIsEditModalOpen(true)
+    if (students && students[index]) {
+      setEditIndex(index)
+      setNewStudent({
+        ra: students[index]?.ra || '',
+        name: students[index]?.name || '',
+        email: students[index]?.email || '',
+        password: '',
+        role: students[index]?.role || 'student',
+      })
+      setIsEditModalOpen(true)
+    }
   }
   const closeEditModal = () => {
     setIsEditModalOpen(false)
-    setNewStudent({ ra: '', name: '', email: '' })
+    setNewStudent({ ra: '', name: '', email: '', password: '', role: 'student' })
   }
 
   const openDeleteModal = (index: number) => {
@@ -52,8 +57,12 @@ export default function StudentManagement() {
 
   // Funções para adicionar, editar e deletar
   const handleAddStudent = () => {
-    if (newStudent.ra && newStudent.name && newStudent.email) {
-      setData((prevData) => [...prevData, newStudent])
+    if (newStudent.ra && newStudent.name && newStudent.email && newStudent.password) {
+      createStudent(newStudent, {
+        onSuccess: () => {
+          refetch() // Refetch data after adding a student
+        },
+      })
       closeModal()
     } else {
       alert('Preencha todos os campos!')
@@ -61,20 +70,39 @@ export default function StudentManagement() {
   }
 
   const handleEditStudent = () => {
-    if (editIndex !== null && newStudent.ra && newStudent.name && newStudent.email) {
-      const updatedData = [...data]
-      updatedData[editIndex] = newStudent
-      setData(updatedData)
-      closeEditModal()
+    if (editIndex !== null && students && students[editIndex]) {
+      if (newStudent.ra && newStudent.name && newStudent.email && newStudent.password) {
+        const updatedStudent = {
+          ...newStudent,
+          id: students[editIndex]?.id,
+          iat: 0,
+          exp: 0,
+        }
+
+        updateStudent(updatedStudent, {
+          onSuccess: () => {
+            refetch() // Refetch data after updating a student
+          },
+        })
+        closeEditModal()
+      } else {
+        alert('Preencha todos os campos!')
+      }
     } else {
-      alert('Preencha todos os campos!')
+      alert('Aluno não encontrado ou inválido.')
     }
   }
 
   const handleDeleteStudent = () => {
-    if (editIndex !== null) {
-      setData((prevData) => prevData.filter((_, i) => i !== editIndex))
+    if (editIndex !== null && students && students[editIndex]) {
+      deleteStudent(students[editIndex]?.ra, {
+        onSuccess: () => {
+          refetch() // Refetch data after deleting a student
+        },
+      })
       closeDeleteModal()
+    } else {
+      alert('Aluno não encontrado ou inválido.')
     }
   }
 
@@ -107,7 +135,7 @@ export default function StudentManagement() {
           <span className="text-2xl">+</span> Adicionar Aluno
         </Button>
 
-        {data.length === 0 ? (
+        {students?.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-gray-500 bg-gray-50 rounded-xl">
             <p className="text-xl text-center">Nenhum aluno cadastrado.</p>
           </div>
@@ -129,7 +157,7 @@ export default function StudentManagement() {
                 </tr>
               </thead>
               <tbody>
-                {data.map((student, index) => (
+                {students?.map((student, index) => (
                   <motion.tr
                     key={index}
                     className="hover:bg-blue-50/50 transition-colors duration-150"
@@ -146,7 +174,7 @@ export default function StudentManagement() {
                       </Button>
                     </td>
                     <td className="p-4 w-1/12 text-center">
-                      <Button onClick={() => openDeleteModal(index)} className="text-red-500 hover:text-red-600 p-3 hover:bg-red-50 rounded-xl transition-colors">
+                      <Button onClick={() => openDeleteModal(index)} className="text-red-600 hover:text-red-700 p-3 hover:bg-red-50 rounded-xl transition-colors">
                         <FaRegTrashCan size={20} />
                       </Button>
                     </td>
@@ -156,122 +184,122 @@ export default function StudentManagement() {
             </table>
           </motion.div>
         )}
-
-        {/* Modal de Adição */}
-        <AnimatePresence>
-          {isModalOpen && (
-            <Modal isOpen={isModalOpen} onClose={closeModal} title="Adicionar Aluno">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.1 }}
-                className="space-y-6"
-              >
-                <Input
-                  type="text"
-                  placeholder="RA"
-                  value={newStudent.ra}
-                  onChange={(e) => setNewStudent({ ...newStudent, ra: e.target.value })}
-                  className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                />
-                <Input
-                  type="text"
-                  placeholder="Nome"
-                  value={newStudent.name}
-                  onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
-                  className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                />
-                <Input
-                  type="email"
-                  placeholder="E-mail"
-                  value={newStudent.email}
-                  onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
-                  className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                />
-                <div className="flex justify-end">
-                  <Button
-                    onClick={handleAddStudent}
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 text-lg font-semibold hover:scale-105"
-                  >
-                    Adicionar
-                  </Button>
-                </div>
-              </motion.div>
-            </Modal>
-          )}
-        </AnimatePresence>
-
-        {/* Modal de Edição */}
-        <AnimatePresence>
-          {isEditModalOpen && (
-            <Modal isOpen={isEditModalOpen} onClose={closeEditModal} title="Editar Aluno">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.1 }}
-                className="space-y-6"
-              >
-                <Input
-                  type="text"
-                  placeholder="RA"
-                  value={newStudent.ra}
-                  onChange={(e) => setNewStudent({ ...newStudent, ra: e.target.value })}
-                  className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                />
-                <Input
-                  type="text"
-                  placeholder="Nome"
-                  value={newStudent.name}
-                  onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
-                  className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                />
-                <Input
-                  type="email"
-                  placeholder="E-mail"
-                  value={newStudent.email}
-                  onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
-                  className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                />
-                <div className="flex justify-end">
-                  <Button
-                    onClick={handleEditStudent}
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 text-lg font-semibold hover:scale-105"
-                  >
-                    Editar
-                  </Button>
-                </div>
-              </motion.div>
-            </Modal>
-          )}
-        </AnimatePresence>
-
-        {/* Modal de Exclusão */}
-        <AnimatePresence>
-          {isDeleteModalOpen && (
-            <Modal isOpen={isDeleteModalOpen} onClose={closeDeleteModal} title="Confirmar Exclusão">
-              <div className="space-y-6">
-                <p className="text-lg">Tem certeza que deseja excluir este aluno?</p>
-                <div className="flex justify-end space-x-4">
-                  <Button
-                    onClick={handleDeleteStudent}
-                    className="bg-red-500 text-white px-6 py-3 rounded-xl hover:bg-red-600 hover:shadow-lg transition-all duration-200 text-lg font-semibold"
-                  >
-                    Excluir
-                  </Button>
-                  <Button
-                    onClick={closeDeleteModal}
-                    className="bg-gray-500 text-white px-6 py-3 rounded-xl hover:bg-gray-600 hover:shadow-lg transition-all duration-200 text-lg font-semibold"
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              </div>
-            </Modal>
-          )}
-        </AnimatePresence>
       </motion.div>
+
+      {/* Modal de Adição */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <Modal isOpen={isModalOpen} onClose={closeModal} title="Adicionar Aluno">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.1 }}
+              className="space-y-6"
+            >
+              <Input
+                type="text"
+                placeholder="RA"
+                value={newStudent.ra}
+                onChange={(e) => setNewStudent({ ...newStudent, ra: e.target.value })}
+                className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              />
+              <Input
+                type="text"
+                placeholder="Nome"
+                value={newStudent.name}
+                onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
+                className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              />
+              <Input
+                type="email"
+                placeholder="E-mail"
+                value={newStudent.email}
+                onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              />
+              <div className="flex justify-end">
+                <Button
+                  onClick={handleAddStudent}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 text-lg font-semibold hover:scale-105"
+                >
+                  Adicionar
+                </Button>
+              </div>
+            </motion.div>
+          </Modal>
+        )}
+      </AnimatePresence>
+
+      {/* Modal de Edição */}
+      <AnimatePresence>
+        {isEditModalOpen && (
+          <Modal isOpen={isEditModalOpen} onClose={closeEditModal} title="Editar Aluno">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.1 }}
+              className="space-y-6"
+            >
+              <Input
+                type="text"
+                placeholder="RA"
+                value={newStudent.ra}
+                onChange={(e) => setNewStudent({ ...newStudent, ra: e.target.value })}
+                className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              />
+              <Input
+                type="text"
+                placeholder="Nome"
+                value={newStudent.name}
+                onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
+                className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              />
+              <Input
+                type="email"
+                placeholder="E-mail"
+                value={newStudent.email}
+                onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              />
+              <div className="flex justify-end">
+                <Button
+                  onClick={handleEditStudent}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 text-lg font-semibold hover:scale-105"
+                >
+                  Editar
+                </Button>
+              </div>
+            </motion.div>
+          </Modal>
+        )}
+      </AnimatePresence>
+
+      {/* Modal de Exclusão */}
+      <AnimatePresence>
+        {isDeleteModalOpen && (
+          <Modal isOpen={isDeleteModalOpen} onClose={closeDeleteModal} title="Confirmar Exclusão">
+            <div className="space-y-6">
+              <p className="text-lg">Tem certeza que deseja excluir este aluno?</p>
+              <div className="flex justify-end space-x-4">
+                <Button
+                  onClick={handleDeleteStudent}
+                  className="bg-red-500 text-white px-6 py-3 rounded-xl hover:bg-red-600 hover:shadow-lg transition-all duration-200 text-lg font-semibold"
+                >
+                  Excluir
+                </Button>
+                <Button
+                  onClick={closeDeleteModal}
+                  className="bg-gray-500 text-white px-6 py-3 rounded-xl hover:bg-gray-600 hover:shadow-lg transition-all duration-200 text-lg font-semibold"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          </Modal>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

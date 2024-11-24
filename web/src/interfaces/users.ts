@@ -31,7 +31,7 @@ export interface Student {
   }[]
 }
 
-export interface CreateUser {
+export interface CreateStudent {
   name: string
   email: string
   ra: string

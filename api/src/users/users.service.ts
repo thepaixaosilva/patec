@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ConflictException, InternalServerErrorEx
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { IsNull, Not, Repository } from 'typeorm'
 import { User } from './entities/user.entity'
 import * as bcrypt from 'bcrypt'
 
@@ -62,6 +62,19 @@ export class UsersService {
     const users = await this.userRepository.find({
       select: ['id', 'name', 'email', 'ra', 'role'],
       relations: ['userSubject', 'answers'],
+    })
+    return users
+  }
+
+  /**
+   * Returns all students (users with non-null 'ra')
+   * @returns Promise with array of users (without passwords)
+   */
+  async findAllStudents(): Promise<Omit<User, 'password'>[]> {
+    const users = await this.userRepository.find({
+      select: ['id', 'name', 'email', 'ra', 'role'],
+      relations: ['userSubject', 'answers'],
+      where: { ra: Not(IsNull()) },
     })
     return users
   }

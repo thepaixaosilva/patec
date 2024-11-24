@@ -56,6 +56,21 @@ export class UsersController {
     return this.usersService.findAll()
   }
 
+  @Get('students')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get all users',
+    description: 'Retrieves a list of all users with their details.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of all users retrieved successfully',
+    type: [User],
+  })
+  findAllStudents() {
+    return this.usersService.findAllStudents()
+  }
+
   @Get(':ra')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

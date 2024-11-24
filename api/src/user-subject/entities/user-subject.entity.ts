@@ -18,7 +18,7 @@ export class UserSubject {
   userRa: string
 
   @ManyToOne(() => User, (user) => user.userSubject, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId', referencedColumnName: 'id' }) // Relacionamento pela PK
+  @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
   user: User
 
   @ManyToOne(() => Subject, (subject) => subject.userSubject, { onDelete: 'CASCADE' })

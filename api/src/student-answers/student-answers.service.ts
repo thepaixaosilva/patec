@@ -26,8 +26,12 @@ export class StudentAnswersService {
    * Returns all answer sheets
    * @returns Promise with array of answer sheets
    */
-  findAll(): Promise<StudentAnswer[]> {
-    return this.studentAnswersRepository.find()
+  async findAll(): Promise<any[]> {
+    return this.studentAnswersRepository
+      .createQueryBuilder('studentAnswer')
+      .leftJoinAndSelect('studentAnswer.user', 'user')
+      .select(['studentAnswer', 'user.id', 'user.name', 'user.email'])
+      .getMany()
   }
 
   /**

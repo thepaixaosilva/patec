@@ -13,6 +13,8 @@ async function bootstrap() {
     })
   )
 
+  app.enableCors()
+
   const config = new DocumentBuilder()
     .setTitle('Patec-API')
     .setDescription('API em Node/Express desenvolvida para o Projeto Integrador do 4° semestre do curso de ADS da Fatec. ')

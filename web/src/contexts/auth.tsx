@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (decoded.exp < Math.floor(Date.now() / 1000)) {
         localStorage.removeItem('token')
         logout()
-        setRedirectPath('/login')
+        setRedirectPath('/')
       } else {
         setUser(decoded)
         setIsAuthenticated(true)

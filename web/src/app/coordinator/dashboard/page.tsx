@@ -8,13 +8,35 @@ import { FaPenClip } from 'react-icons/fa6'
 import { LinkButton } from '@/components/ui/link-button'
 import { motion } from 'framer-motion'
 import { IoMdExit } from 'react-icons/io'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/auth'
+
+interface ButtonItem {
+  href?: string
+  onClick?: () => void
+  icon: React.ReactNode
+  label: string
+  bgColor: string
+  description: string
+}
 
 export default function Dashboard() {
   const [hoveredItem, setHoveredItem] = useState<number | null>(null)
+  const router = useRouter()
+  const { logout } = useAuth()
+
+  const handleLogout = () => {
+    try {
+      logout()
+      router.push('/')
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error)
+    }
+  }
 
   const baseButtonClasses = 'flex flex-col items-center justify-center text-white px-6 py-4 rounded-xl size-64 transition-transform duration-300 hover:scale-105 hover:shadow-2xl'
 
-  const buttonItems = [
+  const buttonItems: ButtonItem[] = [
     {
       href: '/coordinator/manage_answer_keys',
       icon: <FaPenClip className="mb-5 size-28" />,
@@ -51,11 +73,11 @@ export default function Dashboard() {
       description: 'Acesse relatórios detalhados das avaliações.',
     },
     {
-      href: '/login',
+      onClick: handleLogout,
       icon: <IoMdExit className="mb-5 size-28" />,
       label: 'Sair',
       bgColor: 'bg-gray-500 hover:bg-gray-600',
-      description: '',
+      description: 'Fazer logout do sistema.',
     },
   ]
 
@@ -71,14 +93,21 @@ export default function Dashboard() {
             onMouseEnter={() => setHoveredItem(index)}
             onMouseLeave={() => setHoveredItem(null)}
           >
-            <LinkButton href={item.href} className={`${baseButtonClasses} ${item.bgColor}`}>
-              {item.icon}
-              <h1 className="text-2xl font-semibold text-center mt-3">{item.label}</h1>
-            </LinkButton>
+            {item.onClick ? (
+              <button onClick={item.onClick} className={`${baseButtonClasses} ${item.bgColor}`}>
+                {item.icon}
+                <h1 className="text-2xl font-semibold text-center mt-3">{item.label}</h1>
+              </button>
+            ) : item.href ? (
+              <LinkButton href={item.href} className={`${baseButtonClasses} ${item.bgColor}`}>
+                {item.icon}
+                <h1 className="text-2xl font-semibold text-center mt-3">{item.label}</h1>
+              </LinkButton>
+            ) : null}
           </motion.div>
         ))}
       </div>
-      <div className="h-12 mt-4  font-extrabold text-center text-gray-700">{hoveredItem !== null && buttonItems[hoveredItem].description}</div>
+      <div className="h-12 mt-4 font-extrabold text-center text-gray-700">{hoveredItem !== null && buttonItems[hoveredItem].description}</div>
     </div>
   )
 }

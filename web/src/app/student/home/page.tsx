@@ -94,7 +94,7 @@ export default function Home() {
             </div>
             <div className="flex items-center justify-center gap-10">
               {/* Botão de retorno */}
-              <Link href="/./student/login" className="absolute left-8 top-8">
+              <Link href="/" className="absolute left-8 top-8">
                 <Button className="flex items-center gap-3 bg-white hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-xl text-lg shadow-md transition-all duration-200 hover:-translate-x-1">
                   <FaArrowLeft size={24} />
                   Início

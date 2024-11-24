@@ -32,7 +32,7 @@ api.interceptors.response.use(
     // Tratamento de erro 401 (não autorizado)
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
-      window.location.href = '/login'
+      window.location.href = '/'
       // Usando o toaster do Chakra UI
       toaster.error({
         title: 'Sessão expirada',

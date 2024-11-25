@@ -1,4 +1,4 @@
-export interface User {
+export interface IUser {
   id: number
   name: string
   ra: string
@@ -8,7 +8,7 @@ export interface User {
   exp: number
 }
 
-export interface Student {
+export interface IStudent {
   id: number
   name: string
   ra: string
@@ -31,7 +31,7 @@ export interface Student {
   }[]
 }
 
-export interface CreateStudent {
+export interface ICreateStudent {
   name: string
   email: string
   ra: string

@@ -1,13 +1,13 @@
 'use client'
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react'
 import api from '@/config/api'
-import { User } from '@/interfaces/users'
+import { IUser } from '@/interfaces/users'
 import { jwtDecode } from 'jwt-decode'
 import { useRouter } from 'next/navigation' // Use o hook correto para navegação
 
 interface AuthContextType {
   isAuthenticated: boolean
-  user: User | null
+  user: IUser | null
   login: (credentials: LoginCredentials) => Promise<void>
   logout: () => void
 }
@@ -26,7 +26,7 @@ export const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<IUser | null>(null)
   const [redirectPath, setRedirectPath] = useState<string | null>(null) // Estado para redirecionamento
   const router = useRouter()
 
@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const validateToken = async (token: string) => {
     try {
-      const decoded = jwtDecode<User>(token)
+      const decoded = jwtDecode<IUser>(token)
       if (decoded.exp < Math.floor(Date.now() / 1000)) {
         localStorage.removeItem('token')
         logout()

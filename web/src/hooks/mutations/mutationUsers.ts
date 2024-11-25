@@ -1,32 +1,32 @@
 import { useMutation, useQueryClient } from 'react-query'
-import { CreateStudent, User } from '@/interfaces/users'
+import { ICreateStudent, IUser } from '@/interfaces/users'
 import api from '@/config/api'
 
-const createUser = (user: CreateStudent) => api.post<CreateStudent>('/users', user)
+const createUser = (user: ICreateStudent) => api.post<ICreateStudent>('/users', user)
 
 export const useCreateStudent = () => {
   const queryClient = useQueryClient()
 
-  return useMutation((user: CreateStudent) => createUser(user), {
+  return useMutation((user: ICreateStudent) => createUser(user), {
     onSuccess: () => {
       queryClient.invalidateQueries('users')
     },
   })
 }
 
-const updateUser = (student: User) => api.put<User>(`/users/${student.id}`, student)
+const updateUser = (student: IUser) => api.put<IUser>(`/users/${student.id}`, student)
 
 export const useUpdateStudent = () => {
   const queryClient = useQueryClient()
 
-  return useMutation((student: User) => updateUser(student), {
+  return useMutation((student: IUser) => updateUser(student), {
     onSuccess: () => {
       queryClient.invalidateQueries('users')
     },
   })
 }
 
-const deleteStudent = (ra: string) => api.delete<User>(`/users/${ra}`)
+const deleteStudent = (ra: string) => api.delete<IUser>(`/users/${ra}`)
 
 export const useDeleteStudent = () => {
   const queryClient = useQueryClient()

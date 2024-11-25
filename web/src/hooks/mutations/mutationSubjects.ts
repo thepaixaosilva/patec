@@ -1,32 +1,32 @@
 import { useMutation, useQueryClient } from 'react-query'
-import { Subject } from '@/interfaces/subjects'
+import { ISubject } from '@/interfaces/subjects'
 import api from '@/config/api'
 
-const createSubject = (subject: Subject) => api.post<Subject>('/subjects', subject)
+const createSubject = (subject: ISubject) => api.post<ISubject>('/subjects', subject)
 
 export const useCreateSubject = () => {
   const queryClient = useQueryClient()
 
-  return useMutation((subject: Subject) => createSubject(subject), {
+  return useMutation((subject: ISubject) => createSubject(subject), {
     onSuccess: () => {
       queryClient.invalidateQueries('subjects')
     },
   })
 }
 
-const updateSubject = (subject: Subject) => api.put<Subject>(`/subjects/${subject.subjectId}`, subject)
+const updateSubject = (subject: ISubject) => api.put<ISubject>(`/subjects/${subject.subjectId}`, subject)
 
 export const useUpdateSubject = () => {
   const queryClient = useQueryClient()
 
-  return useMutation((subject: Subject) => updateSubject(subject), {
+  return useMutation((subject: ISubject) => updateSubject(subject), {
     onSuccess: () => {
       queryClient.invalidateQueries('subjects')
     },
   })
 }
 
-const deleteSubject = (subjectId: string) => api.delete<Subject>(`/subjects/${subjectId}`)
+const deleteSubject = (subjectId: string) => api.delete<ISubject>(`/subjects/${subjectId}`)
 
 export const useDeleteSubject = () => {
   const queryClient = useQueryClient()

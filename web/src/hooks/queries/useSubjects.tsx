@@ -1,8 +1,8 @@
 import { useQuery } from 'react-query'
-import { Subject } from '@/interfaces/subjects'
+import { ISubject } from '@/interfaces/subjects'
 import api from '@/config/api'
 
-const fetchSubjects = () => api.get<Subject[]>('/subjects')
+const fetchSubjects = () => api.get<ISubject[]>('/subjects')
 
 export default function useSubjects() {
   return useQuery(['subjects'], () => fetchSubjects(), {

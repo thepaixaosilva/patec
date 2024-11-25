@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { GiBookCover } from 'react-icons/gi'
 import useSubjects from '@/hooks/queries/useSubjects'
 import { useCreateSubject, useUpdateSubject, useDeleteSubject } from '@/hooks/mutations/mutationSubjects'
-import { Subject } from '@/interfaces/subjects'
+import { ISubject } from '@/interfaces/subjects'
 
 export default function SubjectManagement() {
   const { data: subjects } = useSubjects()
@@ -19,7 +19,7 @@ export default function SubjectManagement() {
   const { mutate: updateSubject } = useUpdateSubject()
   const { mutate: deleteSubject } = useDeleteSubject()
 
-  const [newSubject, setNewSubject] = useState<Subject>({ subjectId: '', name: '', semester: 0 })
+  const [newSubject, setNewSubject] = useState<ISubject>({ subjectId: '', name: '', semester: 0 })
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -148,7 +148,7 @@ export default function SubjectManagement() {
                 </tr>
               </thead>
               <tbody>
-                {subjects?.map((subject: Subject, index: number) => (
+                {subjects?.map((subject: ISubject, index: number) => (
                   <motion.tr
                     key={index}
                     className="hover:bg-blue-50/50 transition-colors duration-150"

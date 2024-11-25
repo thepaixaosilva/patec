@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { PiStudentFill } from 'react-icons/pi'
 import useStudents from '@/hooks/queries/useStudents'
 import { useCreateStudent, useUpdateStudent, useDeleteStudent } from '@/hooks/mutations/mutationUsers'
-import { CreateStudent } from '@/interfaces/users'
+import { ICreateStudent } from '@/interfaces/users'
 
 export default function StudentManagement() {
   const { data: students, refetch } = useStudents() // Use refetch here to reload data
@@ -18,7 +18,7 @@ export default function StudentManagement() {
   const { mutate: updateStudent } = useUpdateStudent()
   const { mutate: deleteStudent } = useDeleteStudent()
 
-  const [newStudent, setNewStudent] = useState<CreateStudent>({ ra: '', name: '', email: '', password: '', role: 'student' })
+  const [newStudent, setNewStudent] = useState<ICreateStudent>({ ra: '', name: '', email: '', password: '', role: 'student' })
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)

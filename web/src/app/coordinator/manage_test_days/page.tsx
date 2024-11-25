@@ -7,39 +7,46 @@ import { FaArrowLeft } from 'react-icons/fa6'
 import { Button, Input } from '@chakra-ui/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
-import ITestDay from '@/interfaces/testDay'
+import { ICreateTestDay } from '@/interfaces/testDay'
 import Modal from '@/components/shared/Modal'
+import { useCreateTestDay, useUpdateTestDay, useDeleteTestDay } from '@/hooks/mutations/mutationTestDay'
+import useTestDays from '@/hooks/queries/useTestDay'
+import { LinkButton } from '@/components/ui/link-button'
 
 export default function TestManagement() {
-  const [testDays, setTestDays] = useState<ITestDay[]>([])
+  const { data: testDays = [] } = useTestDays() // Utilize o hook para obter os testDays
 
-  const [newTestDay, setNewTestDay] = useState<ITestDay>({ testDayId: 0, date: new Date(), type: '', file: '' })
+  const [newTestDay, setNewTestDay] = useState<ICreateTestDay>({ id: 0, testDate: new Date(), testType: '', file: null })
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [editIndex, setEditIndex] = useState<number | null>(null)
 
+  const { mutate: createTestDay } = useCreateTestDay()
+  const { mutate: updateTestDay } = useUpdateTestDay()
+  const { mutate: deleteTestDay } = useDeleteTestDay()
+
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => {
     setIsModalOpen(false)
-    setNewTestDay({ testDayId: 0, date: new Date(), type: '', file: '' })
+    setNewTestDay({ id: 0, testDate: new Date(), testType: '', file: null })
   }
-  /* Adicionar arquivo */
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const fileName = e.target.files[0].name // Obtém o nome do arquivo
-      setNewTestDay({ ...newTestDay, file: fileName }) // Atualiza o estado com o nome do arquivo
+      const file = e.target.files[0]
+      setNewTestDay({ ...newTestDay, file })
     }
   }
 
   const openEditModal = (index: number) => {
-    setEditIndex(index)
-    setNewTestDay(testDays[index])
-    setIsEditModalOpen(true)
+    // setEditIndex(index)
+    // setNewTestDay(testDays[index])
+    // setIsEditModalOpen(true)
   }
   const closeEditModal = () => {
     setIsEditModalOpen(false)
-    setNewTestDay({ testDayId: 0, date: new Date(), type: '', file: '' })
+    setNewTestDay({ id: 0, testDate: new Date(), testType: '', file: null })
   }
 
   const openDeleteModal = (index: number) => {
@@ -49,19 +56,27 @@ export default function TestManagement() {
   const closeDeleteModal = () => setIsDeleteModalOpen(false)
 
   const handleCreateTest = () => {
-    if (newTestDay.date && newTestDay.type) {
-      setTestDays((prevData) => [...prevData, newTestDay])
+    if (newTestDay.testDate && newTestDay.testType && newTestDay.file) {
+      const formData = new FormData()
+      formData.append('testDate', newTestDay.testDate.toISOString())
+      formData.append('testType', newTestDay.testType)
+      formData.append('file', newTestDay.file)
+
+      createTestDay(formData)
       closeModal()
     } else {
-      alert('Preencha todos os campos!')
+      alert('Preencha todos os campos e anexe um arquivo!')
     }
   }
 
   const handleEditTest = () => {
-    if (editIndex !== null && newTestDay.testDayId && newTestDay.date && newTestDay.type) {
-      const updatedData = [...testDays]
-      updatedData[editIndex] = newTestDay
-      setTestDays(updatedData)
+    if (editIndex !== null && newTestDay.id && newTestDay.testDate && newTestDay.testType && newTestDay.file) {
+      const formData = new FormData()
+      formData.append('testDate', newTestDay.testDate.toISOString())
+      formData.append('testType', newTestDay.testType)
+      formData.append('file', newTestDay.file)
+
+      updateTestDay({ testDayId: newTestDay.id, testDay: formData })
       closeEditModal()
     } else {
       alert('Preencha todos os campos!')
@@ -70,10 +85,12 @@ export default function TestManagement() {
 
   const handleDeleteTest = () => {
     if (editIndex !== null) {
-      setTestDays((prevData) => prevData.filter((_, i) => i !== editIndex))
+      deleteTestDay(testDays[editIndex].id)
       closeDeleteModal()
     }
   }
+
+  console.log(testDays)
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-200 via-pink-200 to-red-200 py-8">
@@ -126,30 +143,46 @@ export default function TestManagement() {
               </tr>
             </thead>
             <tbody>
-              {testDays.map((test, index) => (
-                <motion.tr
-                  key={index}
-                  className="hover:bg-blue-50/50 transition-colors duration-150"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.1 }}
-                >
-                  <td className="p-4 w-1/4 font-medium text-gray-700">{test.testDayId}</td>
-                  <td className="p-4 w-1/4 text-gray-600">{test.date.toLocaleDateString()}</td>
-                  <td className="p-4 w-1/4 text-gray-600">{test.type}</td>
-                  <td className="p-4 w-1/6 text-center"></td>
-                  <td className="p-4 w-1/12 text-center">
-                    <Button onClick={() => openEditModal(index)} className="text-center text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors">
-                      <FaPencilAlt size={20} />
-                    </Button>
-                  </td>
-                  <td className="p-4 w-1/12 text-center">
-                    <Button onClick={() => openDeleteModal(index)} className="text-center text-red-500 hover:text-red-600 p-3 hover:bg-red-50 rounded-xl transition-colors">
-                      <FaRegTrashCan size={20} />
-                    </Button>
-                  </td>
-                </motion.tr>
-              ))}
+              {testDays.map((test, index) => {
+                // Converter para Date, se necessário
+                const testDate = test.testDate instanceof Date ? test.testDate : new Date(test.testDate)
+
+                return (
+                  <motion.tr
+                    key={index}
+                    className="hover:bg-blue-50/50 transition-colors duration-150"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.1 }}
+                  >
+                    <td className="p-4 w-1/4 font-medium text-gray-700">{test.id}</td>
+                    <td className="p-4 w-1/4 text-gray-600">{testDate.toLocaleDateString()}</td>
+                    <td className="p-4 w-1/4 text-gray-600">{test.testType}</td>
+                    {test.filePath ? (
+                      <LinkButton
+                        as="a"
+                        href={`/uploads/test-days/${test.filePath}`} // URL do servidor para o PDF
+                        rel="noopener noreferrer"
+                        className="text-center text-green-600 hover:text-green-700 p-3 hover:bg-green-50 rounded-xl transition-colors"
+                      >
+                        <FaPaperclip size={20} />
+                      </LinkButton>
+                    ) : (
+                      <span className="text-gray-500">N/A</span>
+                    )}
+                    <td className="p-4 w-1/12 text-center">
+                      <Button onClick={() => openEditModal(index)} className="text-center text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors">
+                        <FaPencilAlt size={20} />
+                      </Button>
+                    </td>
+                    <td className="p-4 w-1/12 text-center">
+                      <Button onClick={() => openDeleteModal(index)} className="text-center text-red-500 hover:text-red-600 p-3 hover:bg-red-50 rounded-xl transition-colors">
+                        <FaRegTrashCan size={20} />
+                      </Button>
+                    </td>
+                  </motion.tr>
+                )
+              })}
             </tbody>
           </motion.div>
         )}
@@ -167,30 +200,30 @@ export default function TestManagement() {
                 <Input
                   type="date"
                   placeholder="Data"
-                  value={newTestDay.date.toISOString().split('T')[0]}
-                  onChange={(e) => setNewTestDay({ ...newTestDay, date: new Date(e.target.value) })}
+                  value={newTestDay.testDate.toISOString().split('T')[0]}
+                  onChange={(e) => setNewTestDay({ ...newTestDay, testDate: new Date(e.target.value) })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
                 />
                 <Input
                   type="text"
                   placeholder="Tipo"
-                  value={newTestDay.type}
-                  onChange={(e) => setNewTestDay({ ...newTestDay, type: e.target.value })}
+                  value={newTestDay.testType}
+                  onChange={(e) => setNewTestDay({ ...newTestDay, testType: e.target.value })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
                 />
-                {/* Anexar avaliação 
+                {/* Anexar avaliação */}
                 <div className="flex flex-col">
                   <label htmlFor="fileUpload" className="flex items-center space-x-2 text-blue-600 cursor-pointer">
                     <FaPaperclip size={20} />
                     <span>Anexar arquivo</span>
                   </label>
-                  <Input id="fileUpload" type="file" onChange={handleFileChange} className="hidden" />
+                  <Input id="fileUpload" type="file" accept=".pdf" onChange={handleFileChange} className="hidden" />
                   {newTestDay.file && (
                     <p className="text-sm text-gray-500">
-                      Arquivo selecionado: <span className="font-medium">{newTestDay.file.name}</span>
+                      Arquivo selecionado: <span className="font-medium">{(newTestDay.file as File).name}</span>
                     </p>
-                  )} 
-                </div> */}
+                  )}
+                </div>
                 <Button onClick={handleCreateTest} className="w-full bg-blue-600 text-white py-3 rounded-xl">
                   Adicionar
                 </Button>
@@ -212,15 +245,15 @@ export default function TestManagement() {
                 <Input
                   type="date"
                   placeholder="Data"
-                  value={newTestDay.date.toISOString().split('T')[0]}
-                  onChange={(e) => setNewTestDay({ ...newTestDay, date: new Date(e.target.value) })}
+                  value={newTestDay.testDate.toISOString().split('T')[0]}
+                  onChange={(e) => setNewTestDay({ ...newTestDay, testDate: new Date(e.target.value) })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
                 />
                 <Input
                   type="text"
                   placeholder="Tipo"
-                  value={newTestDay.type}
-                  onChange={(e) => setNewTestDay({ ...newTestDay, type: e.target.value })}
+                  value={newTestDay.testType}
+                  onChange={(e) => setNewTestDay({ ...newTestDay, testType: e.target.value })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
                 />
                 {/* Anexar avaliação 

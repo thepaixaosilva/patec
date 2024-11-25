@@ -1,15 +1,14 @@
-import api from '@/config/api';
-import ITestDay from '@/interfaces/testDay';
-import { useEffect, useState } from 'react';
+import { useQuery } from 'react-query'
+import { ITestDay } from '@/interfaces/testDay'
+import api from '@/config/api'
 
-  export default function useTestDays() {
-    const [testDays, setTestDays] = useState<ITestDay[]>([])
-  
-    useEffect(() => {
-      api.get('/test-days').then((response) => {
-        setTestDays(response.data)
-      })
-    }, [])
-  
-    return { testDays, setTestDays }
-  }
+const fetchTestDays = () => api.get<ITestDay[]>('/test-days')
+
+export default function useTestDays() {
+  return useQuery(['testDays'], () => fetchTestDays(), {
+    onError: (error) => {
+      console.log(error)
+    },
+    select: (response) => response.data,
+  })
+}

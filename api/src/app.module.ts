@@ -17,6 +17,8 @@ import { LoggerMiddleware } from './middlewares/logger.middleware'
 import { AuthController } from './auth/auth.controller'
 import { AuthGuard } from './guards/auth.guard'
 import { AuthService } from './auth/auth.service'
+import { ServeStaticModule } from '@nestjs/serve-static'
+import { join } from 'path'
 
 @Module({
   imports: [
@@ -32,6 +34,10 @@ import { AuthService } from './auth/auth.service'
     TestDaysModule,
     AuthModule,
     UserSubjectModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'dist', 'uploads', 'test-days'), // Caminho para o diretório de uploads dentro de dist
+      serveRoot: '/uploads', // Prefixo da URL para acessar os arquivos
+    }),
   ],
   controllers: [AppController, AuthController],
   providers: [AppService, AuthService, AuthGuard],

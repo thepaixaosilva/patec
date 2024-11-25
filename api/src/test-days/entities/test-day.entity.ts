@@ -35,7 +35,7 @@ export class TestDay {
     length: 20,
     comment: 'Tipo da avaliação: MIDTERM, FINAL, QUIZ ou PRACTICE',
   })
-  testType: TestType
+  testType: string
 
   @ApiProperty({
     example: 'uploads/test-days/arquivo123.pdf',

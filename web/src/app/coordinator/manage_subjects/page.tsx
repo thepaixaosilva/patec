@@ -3,37 +3,42 @@ import { useState } from 'react'
 import { FaPencilAlt } from 'react-icons/fa'
 import { FaRegTrashCan } from 'react-icons/fa6'
 import { FaArrowLeft } from 'react-icons/fa6'
-import Modal from '@/components/Modal'
+import Modal from '@/components/shared/Modal'
 import { Button, Input } from '@chakra-ui/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import { GiBookCover } from 'react-icons/gi'
 import useSubjects from '@/hooks/queries/useSubjects'
-import api from '@/config/api'
+import { useCreateSubject, useUpdateSubject, useDeleteSubject } from '@/hooks/mutations/mutationSubjects'
+import { ISubject } from '@/interfaces/subjects'
 
 export default function SubjectManagement() {
+  const { data: subjects } = useSubjects()
 
-  const { subjects, setSubjects } = useSubjects()
+  const { mutate: createSubject } = useCreateSubject()
+  const { mutate: updateSubject } = useUpdateSubject()
+  const { mutate: deleteSubject } = useDeleteSubject()
 
-  const [newSubject, setNewSubject] = useState({ subjectId: '', name: '', semester: 0 })
+  const [newSubject, setNewSubject] = useState<ISubject>({ subjectId: '', name: '', semester: 0 })
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [editIndex, setEditIndex] = useState<number | null>(null)
 
-  // Função para abrir o modal
   const openModal = () => setIsModalOpen(true)
-  // Função para fechar o modal
   const closeModal = () => {
     setIsModalOpen(false)
-    setNewSubject({ subjectId: '', name: '', semester: 0 }) // Limpar o formulário
+    setNewSubject({ subjectId: '', name: '', semester: 0 })
   }
 
   const openEditModal = (index: number) => {
-    setEditIndex(index)
-    setNewSubject(subjects[index])
-    setIsEditModalOpen(true)
+    if (subjects) {
+      setEditIndex(index)
+      setNewSubject(subjects[index])
+      setIsEditModalOpen(true)
+    }
   }
+
   const closeEditModal = () => {
     setIsEditModalOpen(false)
     setNewSubject({ subjectId: '', name: '', semester: 0 })
@@ -43,17 +48,19 @@ export default function SubjectManagement() {
     setEditIndex(index)
     setIsDeleteModalOpen(true)
   }
+
   const closeDeleteModal = () => setIsDeleteModalOpen(false)
 
   const handleAddSubject = async () => {
     if (newSubject.subjectId && newSubject.name && newSubject.semester) {
-      try {
-        const response = await api.post('/subjects', newSubject)
-        setSubjects((prevSubjects) => [...prevSubjects, response.data])
-        closeModal()
-      } catch (error) {
-        console.error('Erro ao adicionar disciplina: ', error)
-      }
+      createSubject(newSubject, {
+        onSuccess: () => {
+          closeModal()
+        },
+        onError: (error) => {
+          console.error('Erro ao adicionar disciplina:', error)
+        },
+      })
     } else {
       alert('Preencha todos os campos!')
     }
@@ -61,29 +68,31 @@ export default function SubjectManagement() {
 
   const handleEditSubject = async () => {
     if (editIndex !== null && newSubject.subjectId && newSubject.name && newSubject.semester) {
-      try {
-        const response = await api.patch(`/subjects/${subjects[editIndex].subjectId}`, newSubject)
-        const updatedSubjects = [...subjects]
-        updatedSubjects[editIndex] = response.data
-        setSubjects(updatedSubjects)
-        closeEditModal()
-      } catch (error) {
-        console.error('Erro ao editar disciplina:', error)
-      }
+      updateSubject(newSubject, {
+        onSuccess: () => {
+          closeEditModal()
+        },
+        onError: (error) => {
+          console.error('Erro ao editar disciplina:', error)
+        },
+      })
     } else {
       alert('Preencha todos os campos!')
     }
   }
 
   const handleDeleteSubject = async () => {
-    if (editIndex !== null) {
-      try {
-        await api.delete(`/subjects/${subjects[editIndex].subjectId}`)
-        console.log(subjects[editIndex].subjectId)
-        setSubjects((prevSubjects) => prevSubjects.filter((_, i) => i !== editIndex))
-        closeDeleteModal()
-      } catch (error) {
-        console.error('Erro ao excluir disciplina:', error)
+    if (editIndex !== null && subjects) {
+      const subjectToDelete = subjects[editIndex]
+      if (subjectToDelete) {
+        deleteSubject(subjectToDelete.subjectId, {
+          onSuccess: () => {
+            closeDeleteModal()
+          },
+          onError: (error) => {
+            console.error('Erro ao excluir disciplina:', error)
+          },
+        })
       }
     }
   }
@@ -96,7 +105,6 @@ export default function SubjectManagement() {
         transition={{ duration: 0.3 }}
         className="w-11/12 max-w-7xl p-8 bg-white/80 shadow-2xl rounded-2xl relative border border-gray-100"
       >
-        {/* Botão de Retorno */}
         <Link href="/coordinator/dashboard" className="absolute left-8 top-8">
           <Button className="flex items-center gap-3 bg-white hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-xl text-lg shadow-md transition-all duration-200 hover:-translate-x-1">
             <FaArrowLeft size={24} />
@@ -117,7 +125,7 @@ export default function SubjectManagement() {
           <span className="text-2xl">+</span> Adicionar Disciplina
         </Button>
 
-        {subjects.length === 0 ? (
+        {subjects?.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-gray-500 bg-gray-50 rounded-xl">
             <GiBookCover className="text-5xl mb-4 opacity-50" />
             <p className="text-xl text-center">Nenhuma disciplina cadastrada.</p>
@@ -140,7 +148,7 @@ export default function SubjectManagement() {
                 </tr>
               </thead>
               <tbody>
-                {subjects.map((subject, index) => (
+                {subjects?.map((subject: ISubject, index: number) => (
                   <motion.tr
                     key={index}
                     className="hover:bg-blue-50/50 transition-colors duration-150"
@@ -255,7 +263,7 @@ export default function SubjectManagement() {
           )}
         </AnimatePresence>
 
-        {/* Modal de Confirmação de Exclusão */}
+        {/* Modal de Confirmação de Exclusão */}  
         <AnimatePresence>
           {isDeleteModalOpen && (
             <Modal isOpen={isDeleteModalOpen} onClose={closeDeleteModal} title="Confirmar Exclusão">

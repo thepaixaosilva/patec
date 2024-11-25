@@ -2,52 +2,51 @@
 import { useState } from 'react'
 import { FaPencilAlt } from 'react-icons/fa'
 import { FaPaperclip, FaRegTrashCan } from 'react-icons/fa6'
+import { ImBooks } from 'react-icons/im'
 import { FaArrowLeft } from 'react-icons/fa6'
-import Modal from '@/components/Modal'
 import { Button, Input } from '@chakra-ui/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
-import { GiBookCover } from 'react-icons/gi'
-
-interface Test {
-  testId: number
-  date: Date
-  testType: string
-  file?: File
-}
+import { ICreateTestDay } from '@/interfaces/testDay'
+import Modal from '@/components/shared/Modal'
+import { useCreateTestDay, useUpdateTestDay, useDeleteTestDay } from '@/hooks/mutations/mutationTestDay'
+import useTestDays from '@/hooks/queries/useTestDay'
+import { LinkButton } from '@/components/ui/link-button'
 
 export default function TestManagement() {
-  const [data, setData] = useState<Test[]>([
-    { testId: 1, date: new Date('2024-01-01'), testType: '1º Semestre' },
-    { testId: 2, date: new Date('2024-03-15'), testType: '2º Semestre' },
-    { testId: 3, date: new Date('2024-06-20'), testType: 'Final' },
-  ])
-  const [newTest, setNewTest] = useState<Test>({ testId: 0, date: new Date(), testType: '' })
+  const { data: testDays = [] } = useTestDays() // Utilize o hook para obter os testDays
+
+  const [newTestDay, setNewTestDay] = useState<ICreateTestDay>({ id: 0, testDate: new Date(), testType: '', file: null })
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [editIndex, setEditIndex] = useState<number | null>(null)
 
+  const { mutate: createTestDay } = useCreateTestDay()
+  const { mutate: updateTestDay } = useUpdateTestDay()
+  const { mutate: deleteTestDay } = useDeleteTestDay()
+
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => {
     setIsModalOpen(false)
-    setNewTest({ testId: 0, date: new Date(), testType: '', file: undefined })
+    setNewTestDay({ id: 0, testDate: new Date(), testType: '', file: null })
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setNewTest({ ...newTest, file: e.target.files[0] })
+      const file = e.target.files[0]
+      setNewTestDay({ ...newTestDay, file })
     }
   }
 
   const openEditModal = (index: number) => {
-    setEditIndex(index)
-    setNewTest(data[index])
-    setIsEditModalOpen(true)
+    // setEditIndex(index)
+    // setNewTestDay(testDays[index])
+    // setIsEditModalOpen(true)
   }
   const closeEditModal = () => {
     setIsEditModalOpen(false)
-    setNewTest({ testId: 0, date: new Date(), testType: '' })
+    setNewTestDay({ id: 0, testDate: new Date(), testType: '', file: null })
   }
 
   const openDeleteModal = (index: number) => {
@@ -56,20 +55,28 @@ export default function TestManagement() {
   }
   const closeDeleteModal = () => setIsDeleteModalOpen(false)
 
-  const handleAddTest = () => {
-    if (newTest.testId && newTest.date && newTest.testType && newTest.file) {
-      setData((prevData) => [...prevData, newTest])
+  const handleCreateTest = () => {
+    if (newTestDay.testDate && newTestDay.testType && newTestDay.file) {
+      const formData = new FormData()
+      formData.append('testDate', newTestDay.testDate.toISOString())
+      formData.append('testType', newTestDay.testType)
+      formData.append('file', newTestDay.file)
+
+      createTestDay(formData)
       closeModal()
     } else {
-      alert('Preencha todos os campos!')
+      alert('Preencha todos os campos e anexe um arquivo!')
     }
   }
 
   const handleEditTest = () => {
-    if (editIndex !== null && newTest.testId && newTest.date && newTest.testType) {
-      const updatedData = [...data]
-      updatedData[editIndex] = newTest
-      setData(updatedData)
+    if (editIndex !== null && newTestDay.id && newTestDay.testDate && newTestDay.testType && newTestDay.file) {
+      const formData = new FormData()
+      formData.append('testDate', newTestDay.testDate.toISOString())
+      formData.append('testType', newTestDay.testType)
+      formData.append('file', newTestDay.file)
+
+      updateTestDay({ testDayId: newTestDay.id, testDay: formData })
       closeEditModal()
     } else {
       alert('Preencha todos os campos!')
@@ -78,10 +85,12 @@ export default function TestManagement() {
 
   const handleDeleteTest = () => {
     if (editIndex !== null) {
-      setData((prevData) => prevData.filter((_, i) => i !== editIndex))
+      deleteTestDay(testDays[editIndex].id)
       closeDeleteModal()
     }
   }
+
+  console.log(testDays)
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-200 via-pink-200 to-red-200 py-8">
@@ -99,7 +108,7 @@ export default function TestManagement() {
         </Link>
 
         <div className="flex flex-col items-center mb-12">
-          <GiBookCover className="text-6xl text-red-600 mb-4" />
+          <ImBooks className="text-6xl text-red-600 mb-4" />
           <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">Gerenciamento de Avaliações</h1>
           <div className="h-1 w-24 bg-gradient-to-r from-red-600 to-orange-600 rounded-full" />
         </div>
@@ -111,9 +120,9 @@ export default function TestManagement() {
           <span className="text-2xl">+</span> Adicionar Avaliação
         </Button>
 
-        {data.length === 0 ? (
+        {testDays.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-gray-500 bg-gray-50 rounded-xl">
-            <GiBookCover className="text-5xl mb-4 opacity-50" />
+            <ImBooks className="text-5xl mb-4 opacity-50" />
             <p className="text-xl text-center">Nenhuma avaliação cadastrada.</p>
           </div>
         ) : (
@@ -134,32 +143,46 @@ export default function TestManagement() {
               </tr>
             </thead>
             <tbody>
-              {data.map((test, index) => (
-                <motion.tr
-                  key={index}
-                  className="hover:bg-blue-50/50 transition-colors duration-150"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.1 }}
-                >
-                  <td className="p-4 w-1/4 font-medium text-gray-700">{test.testId}</td>
-                  <td className="p-4 w-1/4 text-gray-600">{test.date.toLocaleDateString()}</td>
-                  <td className="p-4 w-1/4 text-gray-600">{test.testType}</td>
-                  <td className="p-4 w-1/6 text-center">
-                
-                  </td>
-                  <td className="p-4 w-1/12 text-center">
-                    <Button onClick={() => openEditModal(index)} className="text-center text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors">
-                      <FaPencilAlt size={20} />
-                    </Button>
-                  </td>
-                  <td className="p-4 w-1/12 text-center">
-                    <Button onClick={() => openDeleteModal(index)} className="text-center text-red-500 hover:text-red-600 p-3 hover:bg-red-50 rounded-xl transition-colors">
-                      <FaRegTrashCan size={20} />
-                    </Button>
-                  </td>
-                </motion.tr>
-              ))}
+              {testDays.map((test, index) => {
+                // Converter para Date, se necessário
+                const testDate = test.testDate instanceof Date ? test.testDate : new Date(test.testDate)
+
+                return (
+                  <motion.tr
+                    key={index}
+                    className="hover:bg-blue-50/50 transition-colors duration-150"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.1 }}
+                  >
+                    <td className="p-4 w-1/4 font-medium text-gray-700">{test.id}</td>
+                    <td className="p-4 w-1/4 text-gray-600">{testDate.toLocaleDateString()}</td>
+                    <td className="p-4 w-1/4 text-gray-600">{test.testType}</td>
+                    {test.filePath ? (
+                      <LinkButton
+                        as="a"
+                        href={`/uploads/test-days/${test.filePath}`} // URL do servidor para o PDF
+                        rel="noopener noreferrer"
+                        className="text-center text-green-600 hover:text-green-700 p-3 hover:bg-green-50 rounded-xl transition-colors"
+                      >
+                        <FaPaperclip size={20} />
+                      </LinkButton>
+                    ) : (
+                      <span className="text-gray-500">N/A</span>
+                    )}
+                    <td className="p-4 w-1/12 text-center">
+                      <Button onClick={() => openEditModal(index)} className="text-center text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors">
+                        <FaPencilAlt size={20} />
+                      </Button>
+                    </td>
+                    <td className="p-4 w-1/12 text-center">
+                      <Button onClick={() => openDeleteModal(index)} className="text-center text-red-500 hover:text-red-600 p-3 hover:bg-red-50 rounded-xl transition-colors">
+                        <FaRegTrashCan size={20} />
+                      </Button>
+                    </td>
+                  </motion.tr>
+                )
+              })}
             </tbody>
           </motion.div>
         )}
@@ -175,24 +198,17 @@ export default function TestManagement() {
                 className="space-y-6"
               >
                 <Input
-                  type="number"
-                  placeholder="ID"
-                  value={newTest.testId}
-                  onChange={(e) => setNewTest({ ...newTest, testId: Number(e.target.value) })}
-                  className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
-                />
-                <Input
                   type="date"
                   placeholder="Data"
-                  value={newTest.date.toISOString().split('T')[0]}
-                  onChange={(e) => setNewTest({ ...newTest, date: new Date(e.target.value) })}
+                  value={newTestDay.testDate.toISOString().split('T')[0]}
+                  onChange={(e) => setNewTestDay({ ...newTestDay, testDate: new Date(e.target.value) })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
                 />
                 <Input
                   type="text"
                   placeholder="Tipo"
-                  value={newTest.testType}
-                  onChange={(e) => setNewTest({ ...newTest, testType: e.target.value })}
+                  value={newTestDay.testType}
+                  onChange={(e) => setNewTestDay({ ...newTestDay, testType: e.target.value })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
                 />
                 {/* Anexar avaliação */}
@@ -201,14 +217,14 @@ export default function TestManagement() {
                     <FaPaperclip size={20} />
                     <span>Anexar arquivo</span>
                   </label>
-                  <Input id="fileUpload" type="file" onChange={handleFileChange} className="hidden" />
-                  {newTest.file && (
+                  <Input id="fileUpload" type="file" accept=".pdf" onChange={handleFileChange} className="hidden" />
+                  {newTestDay.file && (
                     <p className="text-sm text-gray-500">
-                      Arquivo selecionado: <span className="font-medium">{newTest.file.name}</span>
+                      Arquivo selecionado: <span className="font-medium">{(newTestDay.file as File).name}</span>
                     </p>
                   )}
                 </div>
-                <Button onClick={handleAddTest} className="w-full bg-blue-600 text-white py-3 rounded-xl">
+                <Button onClick={handleCreateTest} className="w-full bg-blue-600 text-white py-3 rounded-xl">
                   Adicionar
                 </Button>
               </motion.div>
@@ -227,39 +243,34 @@ export default function TestManagement() {
                 className="space-y-6"
               >
                 <Input
-                  type="number"
-                  placeholder="ID"
-                  value={newTest.testId}
-                  onChange={(e) => setNewTest({ ...newTest, testId: Number(e.target.value) })}
-                  className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
-                />
-                <Input
+
                   type="date"
                   placeholder="Data"
-                  value={newTest.date.toISOString().split('T')[0]}
-                  onChange={(e) => setNewTest({ ...newTest, date: new Date(e.target.value) })}
+                  value={newTestDay.testDate.toISOString().split('T')[0]}
+                  onChange={(e) => setNewTestDay({ ...newTestDay, testDate: new Date(e.target.value) })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
                 />
                 <Input
                   type="text"
                   placeholder="Tipo"
-                  value={newTest.testType}
-                  onChange={(e) => setNewTest({ ...newTest, testType: e.target.value })}
+
+                  value={newTestDay.testType}
+                  onChange={(e) => setNewTestDay({ ...newTestDay, testType: e.target.value })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
                 />
-                {/* Anexar avaliação */}
+                {/* Anexar avaliação 
                 <div className="flex flex-col">
                   <label htmlFor="fileUpload" className="flex items-center space-x-2 text-blue-600 cursor-pointer">
                     <FaPaperclip size={20} />
                     <span>Anexar arquivo</span>
                   </label>
                   <Input id="fileUpload" type="file" onChange={handleFileChange} className="hidden" />
-                  {newTest.file && (
+                  {newTestDay.file && (
                     <p className="text-sm text-gray-500">
                       Arquivo selecionado: <span className="font-medium">{newTest.file.name}</span>
                     </p>
                   )}
-                </div>
+                </div>  */}
                 <div className="flex justify-end">
                   <Button
                     onClick={handleEditTest}

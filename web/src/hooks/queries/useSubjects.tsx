@@ -1,20 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useQuery } from 'react-query'
+import { ISubject } from '@/interfaces/subjects'
 import api from '@/config/api'
 
-interface Subject {
-  subjectId: string
-  name: string
-  semester: number
-}
+const fetchSubjects = () => api.get<ISubject[]>('/subjects')
 
 export default function useSubjects() {
-  const [subjects, setSubjects] = useState<Subject[]>([])
-
-  useEffect(() => {
-    api.get('/subjects').then((response) => {
-      setSubjects(response.data)
-    })
-  }, [])
-
-  return { subjects, setSubjects }
+  return useQuery(['subjects'], () => fetchSubjects(), {
+    onError: (error) => {
+      console.log(error)
+    },
+    select: (response) => response.data,
+  })
 }

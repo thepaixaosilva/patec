@@ -243,6 +243,7 @@ export default function TestManagement() {
                 className="space-y-6"
               >
                 <Input
+
                   type="date"
                   placeholder="Data"
                   value={newTestDay.testDate.toISOString().split('T')[0]}
@@ -252,6 +253,7 @@ export default function TestManagement() {
                 <Input
                   type="text"
                   placeholder="Tipo"
+
                   value={newTestDay.testType}
                   onChange={(e) => setNewTestDay({ ...newTestDay, testType: e.target.value })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"

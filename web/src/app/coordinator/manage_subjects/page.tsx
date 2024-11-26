@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { FaPencilAlt } from 'react-icons/fa'
 import { FaRegTrashCan } from 'react-icons/fa6'
+import { FaCloudUploadAlt } from "react-icons/fa";
 import { FaArrowLeft } from 'react-icons/fa6'
 import Modal from '@/components/Modal'
 import { Button, Input } from '@chakra-ui/react'
@@ -9,16 +10,29 @@ import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import { GiBookCover } from 'react-icons/gi'
 import useSubjects from '@/hooks/queries/useSubjects'
-import api from '@/config/api'
+import { addSubject, deleteSubject, editSubject } from '@/hooks/mutations/mutationSubjects'
+
+interface UserSubject {
+  ra: string
+  name: string
+  subjectId: string
+}
 
 export default function SubjectManagement() {
 
   const { subjects, setSubjects } = useSubjects()
 
+  const [userSubject] = useState<UserSubject[]>([
+    { ra: '105', name: 'Matheus', subjectId: 'ADM000' },
+    { ra: '106', name: 'João', subjectId: 'ADM000' },
+    { ra: '107', name: 'Maria', subjectId: 'ADM000' },
+  ])
+
   const [newSubject, setNewSubject] = useState({ subjectId: '', name: '', semester: 0 })
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [editIndex, setEditIndex] = useState<number | null>(null)
 
   // Função para abrir o modal
@@ -45,15 +59,16 @@ export default function SubjectManagement() {
   }
   const closeDeleteModal = () => setIsDeleteModalOpen(false)
 
+  const openUploadModal = (index: number) => {
+    setEditIndex(index)
+    setNewSubject(subjects[index])
+    setIsUploadModalOpen(true)
+  }
+  const closeUploadModal = () => setIsUploadModalOpen(false)
+
   const handleAddSubject = async () => {
     if (newSubject.subjectId && newSubject.name && newSubject.semester) {
-      try {
-        const response = await api.post('/subjects', newSubject)
-        setSubjects((prevSubjects) => [...prevSubjects, response.data])
-        closeModal()
-      } catch (error) {
-        console.error('Erro ao adicionar disciplina: ', error)
-      }
+      addSubject(newSubject, setSubjects, closeModal);
     } else {
       alert('Preencha todos os campos!')
     }
@@ -61,15 +76,7 @@ export default function SubjectManagement() {
 
   const handleEditSubject = async () => {
     if (editIndex !== null && newSubject.subjectId && newSubject.name && newSubject.semester) {
-      try {
-        const response = await api.patch(`/subjects/${subjects[editIndex].subjectId}`, newSubject)
-        const updatedSubjects = [...subjects]
-        updatedSubjects[editIndex] = response.data
-        setSubjects(updatedSubjects)
-        closeEditModal()
-      } catch (error) {
-        console.error('Erro ao editar disciplina:', error)
-      }
+      editSubject(subjects[editIndex].subjectId, newSubject, setSubjects, closeEditModal);
     } else {
       alert('Preencha todos os campos!')
     }
@@ -77,14 +84,7 @@ export default function SubjectManagement() {
 
   const handleDeleteSubject = async () => {
     if (editIndex !== null) {
-      try {
-        await api.delete(`/subjects/${subjects[editIndex].subjectId}`)
-        console.log(subjects[editIndex].subjectId)
-        setSubjects((prevSubjects) => prevSubjects.filter((_, i) => i !== editIndex))
-        closeDeleteModal()
-      } catch (error) {
-        console.error('Erro ao excluir disciplina:', error)
-      }
+      deleteSubject(subjects[editIndex].subjectId, setSubjects, closeDeleteModal);
     }
   }
 
@@ -132,9 +132,10 @@ export default function SubjectManagement() {
             <table className="w-full border-collapse">
               <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                 <tr>
-                  <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">Código</th>
-                  <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">Nome</th>
-                  <th className="p-4 w-2/6 text-center text-lg font-semibold text-gray-700">Semestre</th>
+                  <th className="p-4 w-2/12 text-start text-lg font-semibold text-gray-700">Código</th>
+                  <th className="p-4 w-4/12 text-start text-lg font-semibold text-gray-700">Nome</th>
+                  <th className="p-4 w-2/12 text-center text-lg font-semibold text-gray-700">Semestre</th>
+                  <th className="p-4 w-2/12"></th>
                   <th className="p-4 w-1/12"></th>
                   <th className="p-4 w-1/12"></th>
                 </tr>
@@ -148,10 +149,15 @@ export default function SubjectManagement() {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.1 }}
                   >
-                    <td className="p-4 w-2/6 font-medium text-gray-700">{subject.subjectId}</td>
-                    <td className="p-4 w-2/6 text-gray-600">{subject.name}</td>
+                    <td className="p-4 w-2/12 font-medium text-gray-700">{subject.subjectId}</td>
+                    <td className="p-4 w-4/12 text-gray-600">{subject.name}</td>
                     <td className="p-4 w-2/6 text-center">
                       <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">{subject.semester}º Semestre</span>
+                    </td>
+                    <td className="p-4 w-1/12 text-center">
+                      <Button onClick={() => openUploadModal(index)} title="Upload dos alunos matriculados na disciplina" className="text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors">
+                        <FaCloudUploadAlt />
+                      </Button>
                     </td>
                     <td className="p-4 w-1/12 text-center">
                       <Button onClick={() => openEditModal(index)} className="text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors">
@@ -274,6 +280,46 @@ export default function SubjectManagement() {
                   >
                     Cancelar
                   </Button>
+                </div>
+              </div>
+            </Modal>
+          )}
+        </AnimatePresence>
+
+        {/* Modal de Matrícula de Aluno */}
+        <AnimatePresence>
+          {isEditModalOpen && (
+            <Modal isOpen={isUploadModalOpen} onClose={closeUploadModal} title="Alunos matriculados na disciplina">
+              <div className="flex flex-col space-y-4">
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                <Button
+                  onClick={openModal}
+                  className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-8 py-4 rounded-xl hover:shadow-lg transition-all duration-200 mb-8 text-lg font-semibold flex items-center gap-2 hover:scale-105"
+                >
+                  <span className="text-2xl">+</span> Upload de arquivo CSV
+                </Button>
+                  <table className="w-full border-collapse">
+                    <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                      <tr>
+                        <th className="p-4 text-start text-lg font-semibold text-gray-700">RA</th>
+                        <th className="p-4 text-start text-lg font-semibold text-gray-700">Nome</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {userSubject.map((userSubject, index) => (
+                        <motion.tr
+                          key={index}
+                          className="hover:bg-blue-50/50 transition-colors duration-150"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.1 }}
+                        >
+                          <td className="p-4 font-medium text-gray-700">{userSubject.ra}</td>
+                          <td className="p-4 text-gray-600">{userSubject.name}</td>                          
+                        </motion.tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </Modal>

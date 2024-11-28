@@ -8,5 +8,6 @@ import { AnswerKey } from './entities/answer-key.entity'
   imports: [TypeOrmModule.forFeature([AnswerKey])],
   controllers: [AnswerKeysController],
   providers: [AnswerKeysService],
+  exports: [AnswerKeysService],
 })
 export class AnswerKeysModule {}

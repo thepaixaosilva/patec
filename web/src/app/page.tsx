@@ -1,25 +1,39 @@
-"use client"
-import React, { useState } from 'react'
+'use client'
+import React, { useState, useEffect } from 'react'
 import { PiStudentFill, PiBookOpenTextFill, PiEyeFill, PiEyeSlashFill } from 'react-icons/pi'
 import { RiAdminLine, RiLockPasswordLine } from 'react-icons/ri'
 import { useAuth } from '@/contexts/auth'
-import { login as loginApi } from '../services/authService'
 import { Button } from '@/components/ui/button'
 import { Input } from '@chakra-ui/react'
 import { toaster } from '@/components/ui/toaster'
 import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 
 const StartPage = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    userType: 'student',
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuth()
+  const { login, user, isAuthenticated } = useAuth()
+  const router = useRouter()
 
-  // Define the event type explicitly
+  // Efeito para redirecionar quando autenticado
+  useEffect(() => {
+    console.log('Estado de autenticação mudou:', {
+      isAuthenticated,
+      user,
+    })
+
+    if (isAuthenticated && user) {
+      const redirectPath = user.role === 'coordinator' ? '/coordinator/dashboard' : '/student/home'
+
+      console.log('Tentando redirecionar para:', redirectPath)
+      router.push(redirectPath)
+    }
+  }, [isAuthenticated, user, router])
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({
@@ -28,18 +42,13 @@ const StartPage = () => {
     }))
   }
 
-  // Define the event type explicitly
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const { token } = await loginApi(formData)
-      if (!token) {
-        throw new Error('Token não encontrado')
-      }
-      localStorage.setItem('token', token)
-      login(formData)
+      console.log('Iniciando tentativa de login')
+      await login(formData)
 
       toaster.create({
         type: 'success',
@@ -54,6 +63,8 @@ const StartPage = () => {
         errorMessage = error.message
       }
 
+      console.error('Erro no login:', error)
+
       toaster.create({
         type: 'error',
         title: 'Erro no login',
@@ -67,7 +78,7 @@ const StartPage = () => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -80,21 +91,6 @@ const StartPage = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 p-6">
-          {/* <div className="space-y-2">
-            <label className="flex items-center font-medium text-gray-700">
-              <RiLockPasswordLine className="mr-2" />
-              Tipo de Acesso
-            </label>
-            <select
-              name="userType"
-              onChange={handleChange}
-              className="w-full rounded-lg border border-gray-300 bg-white p-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-gray-700"
-            >
-              <option value="student">Aluno</option>
-              <option value="coordinator">Coordenador</option>
-            </select>
-          </div> */}
-
           <div className="space-y-2">
             <label className="block font-medium text-gray-700">E-mail</label>
             <div className="relative">
@@ -140,17 +136,8 @@ const StartPage = () => {
             className={`flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-6 text-lg text-white hover:opacity-90 disabled:opacity-50
               ${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
           >
-            {formData.userType === 'student' ? (
-              <>
-                <PiStudentFill className="mr-2 h-5 w-5" />
-                Entrar como Aluno
-              </>
-            ) : (
-              <>
-                <RiAdminLine className="mr-2 h-5 w-5" />
-                Entrar como Coordenador
-              </>
-            )}
+            <RiAdminLine className="mr-2 h-5 w-5" />
+            Entrar
           </Button>
         </form>
       </motion.div>

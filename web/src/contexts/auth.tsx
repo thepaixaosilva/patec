@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else {
         setUser(decoded)
         setIsAuthenticated(true)
-        setRedirectPath(decoded.role === 'coordinator' ? '/coordinator/dashboard' : '/student/test')
+        setRedirectPath(decoded.role === 'coordinator' ? '/coordinator/dashboard' : '/student/home')
       }
     } catch (error) {
       console.error(error)
@@ -65,13 +65,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (credentials: LoginCredentials) => {
     try {
+      console.log('Tentando login com:', credentials)
       const response = await api.post('/auth/login', credentials)
+      console.log('Resposta do login:', response.data)
 
-      const { token, user } = response.data
+      const { token } = response.data
+
+      if (!token) {
+        throw new Error('Nenhum token recebido')
+      }
+
+      // Decodificar o token para obter as informações do usuário
+      const decodedUser = jwtDecode<IUser>(token)
+
       localStorage.setItem('token', token)
-      setUser(user)
+      setUser(decodedUser)
       setIsAuthenticated(true)
+
+      const redirectPath = decodedUser.role === 'coordinator' ? '/coordinator/dashboard' : '/student/home'
+      console.log('Redirecionando para:', redirectPath)
+      router.push(redirectPath)
     } catch (error) {
+      console.error('Erro no login:', error)
       setIsAuthenticated(false)
       setUser(null)
       throw error

@@ -1,77 +1,53 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { PiStudentFill, PiBookOpenTextFill, PiEyeFill, PiEyeSlashFill } from 'react-icons/pi'
 import { RiAdminLine, RiLockPasswordLine } from 'react-icons/ri'
 import { useAuth } from '@/contexts/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@chakra-ui/react'
-import { toaster } from '@/components/ui/toaster'
 import { motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
+import Swal from 'sweetalert2'
 
 const StartPage = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  })
+  const [formData, setFormData] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { login, user, isAuthenticated } = useAuth()
-  const router = useRouter()
+  const { login } = useAuth()
 
-  // Efeito para redirecionar quando autenticado
-  useEffect(() => {
-    console.log('Estado de autenticação mudou:', {
-      isAuthenticated,
-      user,
+  const showToast = (type: 'success' | 'error', title: string, text: string) => {
+    Swal.fire({
+      toast: true,
+      position: 'top-right',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      icon: type,
+      title: title,
+      text: text,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+      },
     })
-
-    if (isAuthenticated && user) {
-      const redirectPath = user.role === 'coordinator' ? '/coordinator/dashboard' : '/student/home'
-
-      console.log('Tentando redirecionar para:', redirectPath)
-      router.push(redirectPath)
-    }
-  }, [isAuthenticated, user, router])
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault() // Previne o comportamento padrão de recarregar a página
     setIsLoading(true)
 
     try {
-      console.log('Iniciando tentativa de login')
-      await login(formData)
-
-      toaster.create({
-        type: 'success',
-        title: 'Login realizado com sucesso!',
-        description: 'Bem-vindo ao sistema.',
-        duration: 5000,
-        meta: { closable: true },
-      })
-    } catch (error) {
-      let errorMessage = 'Ocorreu um erro durante o login'
-      if (error instanceof Error) {
-        errorMessage = error.message
+      const loginSuccessful = await login(formData)
+      if (!loginSuccessful) {
+        showToast('error', 'Erro no login', 'Credenciais inválidas')
       }
-
-      console.error('Erro no login:', error)
-
-      toaster.create({
-        type: 'error',
-        title: 'Erro no login',
-        description: errorMessage,
-        duration: 5000,
-        meta: { closable: true },
-      })
+    } catch (error) {
+      console.error('Erro durante o login:', error)
+      showToast('error', 'Erro inesperado', 'Ocorreu um erro ao tentar fazer login.')
     } finally {
       setIsLoading(false)
     }
@@ -100,8 +76,8 @@ const StartPage = () => {
                 placeholder="Digite seu e-mail"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 p-3 pl-10 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-gray-700"
                 required
+                className="w-full rounded-lg border border-gray-300 p-3 pl-10 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-gray-700"
               />
               <PiStudentFill className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
             </div>
@@ -116,8 +92,8 @@ const StartPage = () => {
                 placeholder="Digite sua senha"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 p-3 pl-10 pr-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-gray-700"
                 required
+                className="w-full rounded-lg border border-gray-300 p-3 pl-10 pr-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-gray-700"
               />
               <RiLockPasswordLine className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
               <button

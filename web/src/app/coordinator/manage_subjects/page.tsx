@@ -11,6 +11,7 @@ import { GiBookCover } from 'react-icons/gi'
 import useSubjects from '@/hooks/queries/useSubjects'
 import { useCreateSubject, useUpdateSubject, useDeleteSubject } from '@/hooks/mutations/mutationSubjects'
 import { ISubject } from '@/interfaces/subjects'
+import Swal from 'sweetalert2'
 
 export default function SubjectManagement() {
   const { data: subjects } = useSubjects()
@@ -24,6 +25,23 @@ export default function SubjectManagement() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [editIndex, setEditIndex] = useState<number | null>(null)
+
+  const showToast = (type: 'success' | 'error', title: string, text: string) => {
+    Swal.fire({
+      toast: true,
+      position: 'top-right',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      icon: type,
+      title: title,
+      text: text,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+      },
+    })
+  }
 
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => {
@@ -56,13 +74,15 @@ export default function SubjectManagement() {
       createSubject(newSubject, {
         onSuccess: () => {
           closeModal()
+          showToast('success', 'Sucesso', 'Disciplina adicionada com sucesso!')
         },
         onError: (error) => {
           console.error('Erro ao adicionar disciplina:', error)
+          showToast('error', 'Erro', 'Não foi possível adicionar a disciplina.')
         },
       })
     } else {
-      alert('Preencha todos os campos!')
+      showToast('error', 'Erro', 'Preencha todos os campos!')
     }
   }
 
@@ -71,13 +91,15 @@ export default function SubjectManagement() {
       updateSubject(newSubject, {
         onSuccess: () => {
           closeEditModal()
+          showToast('success', 'Sucesso', 'Disciplina atualizada com sucesso!')
         },
         onError: (error) => {
           console.error('Erro ao editar disciplina:', error)
+          showToast('error', 'Erro', 'Não foi possível editar a disciplina.')
         },
       })
     } else {
-      alert('Preencha todos os campos!')
+      showToast('error', 'Erro', 'Preencha todos os campos!')
     }
   }
 
@@ -88,9 +110,11 @@ export default function SubjectManagement() {
         deleteSubject(subjectToDelete.subjectId, {
           onSuccess: () => {
             closeDeleteModal()
+            showToast('success', 'Sucesso', 'Disciplina excluída com sucesso!')
           },
           onError: (error) => {
             console.error('Erro ao excluir disciplina:', error)
+            showToast('error', 'Erro', 'Não foi possível excluir a disciplina.')
           },
         })
       }

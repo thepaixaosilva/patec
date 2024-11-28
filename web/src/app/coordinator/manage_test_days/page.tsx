@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { FaPencilAlt } from 'react-icons/fa'
 import { FaPaperclip, FaRegTrashCan } from 'react-icons/fa6'
 import { FaArrowLeft } from 'react-icons/fa6'
-import { Button, Input } from '@chakra-ui/react'
+import { Button, Input, Select } from '@chakra-ui/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import { ICreateTestDay } from '@/interfaces/testDay'
@@ -12,6 +12,7 @@ import { useCreateTestDay, useUpdateTestDay, useDeleteTestDay } from '@/hooks/mu
 import useTestDays from '@/hooks/queries/useTestDay'
 import { LinkButton } from '@/components/ui/link-button'
 import { IoCalendar } from 'react-icons/io5'
+import Swal from 'sweetalert2'
 
 export default function TestManagement() {
   const { data: testDays = [] } = useTestDays() // Utilize o hook para obter os testDays
@@ -21,6 +22,23 @@ export default function TestManagement() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [editIndex, setEditIndex] = useState<number | null>(null)
+
+  const showToast = (type: 'success' | 'error', title: string, text: string) => {
+    Swal.fire({
+      toast: true,
+      position: 'top-right',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      icon: type,
+      title: title,
+      text: text,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+      },
+    })
+  }
 
   const { mutate: createTestDay } = useCreateTestDay()
   const { mutate: updateTestDay } = useUpdateTestDay()
@@ -39,6 +57,7 @@ export default function TestManagement() {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const openEditModal = (index: number) => {
     // setEditIndex(index)
     // setNewTestDay(testDays[index])
@@ -64,8 +83,9 @@ export default function TestManagement() {
 
       createTestDay(formData)
       closeModal()
+      showToast('success', 'Sucesso', 'Avaliação adicionada com sucesso!')
     } else {
-      alert('Preencha todos os campos e anexe um arquivo!')
+      showToast('error', 'Erro', 'Preencha todos os campos e anexe um arquivo!')
     }
   }
 
@@ -78,8 +98,9 @@ export default function TestManagement() {
 
       updateTestDay({ testDayId: newTestDay.id, testDay: formData })
       closeEditModal()
+      showToast('success', 'Sucesso', 'Avaliação atualizada com sucesso!')
     } else {
-      alert('Preencha todos os campos!')
+      showToast('error', 'Erro', 'Preencha todos os campos!')
     }
   }
 
@@ -87,10 +108,9 @@ export default function TestManagement() {
     if (editIndex !== null) {
       deleteTestDay(testDays[editIndex].id)
       closeDeleteModal()
+      showToast('success', 'Sucesso', 'Avaliação excluída com sucesso!')
     }
   }
-
-  console.log(testDays)
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-200 via-violet-200 to-purple-200 py-8">
@@ -204,13 +224,17 @@ export default function TestManagement() {
                   onChange={(e) => setNewTestDay({ ...newTestDay, testDate: new Date(e.target.value) })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
                 />
-                <Input
-                  type="text"
-                  placeholder="Tipo"
+                <Select
+                  placeholder="Selecione o tipo"
                   value={newTestDay.testType}
                   onChange={(e) => setNewTestDay({ ...newTestDay, testType: e.target.value })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
-                />
+                >
+                  <option value="Prova">Prova</option>
+                  <option value="Trabalho">Trabalho</option>
+                  <option value="Teste Prático">Teste Prático</option>
+                  <option value="Outro">Outro</option>
+                </Select>
                 {/* Anexar avaliação */}
                 <div className="flex flex-col">
                   <label htmlFor="fileUpload" className="flex items-center space-x-2 text-blue-600 cursor-pointer">
@@ -249,13 +273,17 @@ export default function TestManagement() {
                   onChange={(e) => setNewTestDay({ ...newTestDay, testDate: new Date(e.target.value) })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
                 />
-                <Input
-                  type="text"
-                  placeholder="Tipo"
+                <Select
+                  placeholder="Selecione o tipo"
                   value={newTestDay.testType}
                   onChange={(e) => setNewTestDay({ ...newTestDay, testType: e.target.value })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
-                />
+                >
+                  <option value="Prova">Prova</option>
+                  <option value="Trabalho">Trabalho</option>
+                  <option value="Teste Prático">Teste Prático</option>
+                  <option value="Outro">Outro</option>
+                </Select>
                 {/* Anexar avaliação 
                 <div className="flex flex-col">
                   <label htmlFor="fileUpload" className="flex items-center space-x-2 text-blue-600 cursor-pointer">

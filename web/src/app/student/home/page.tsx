@@ -5,8 +5,22 @@ import { IoIosPaper } from 'react-icons/io'
 import { LuCheckCircle } from 'react-icons/lu'
 import { FaArrowLeft } from 'react-icons/fa'
 import { VscDebugStart } from 'react-icons/vsc'
+import { useAuth } from '@/contexts/auth'
+import { useRouter } from 'next/navigation'
 
 export default function Home() {
+  const { logout } = useAuth() // Acesso à função logout
+  const router = useRouter()
+
+  const handleLogout = () => {
+    try {
+      logout()
+      router.push('/')
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error)
+    }
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-orange-200 via-yellow-200 to-amber-200 py-8">
       <motion.div
@@ -87,12 +101,13 @@ export default function Home() {
 
         {/* Botões */}
         <div className="flex justify-center mt-10 gap-6">
-          <Link href="/">
-            <button className="flex items-center justify-center px-6 py-3 text-gray-700 border border-gray-300 rounded-lg shadow-md hover:bg-gray-200 hover:-translate-x-1 transition-transform">
-              <FaArrowLeft className="mr-2" />
-              Sair
-            </button>
-          </Link>
+          <button
+            onClick={handleLogout} // Chama o logout ao clicar no botão Sair
+            className="flex items-center justify-center px-6 py-3 text-gray-700 border border-gray-300 rounded-lg shadow-md hover:bg-gray-200 hover:-translate-x-1 transition-transform"
+          >
+            <FaArrowLeft className="mr-2" />
+            Sair
+          </button>
           <Link href="/student/test">
             <button className="flex items-center justify-center px-6 py-3 text-white bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg shadow-md hover:scale-105 transition-transform">
               <VscDebugStart className="mr-2 text-xl" />

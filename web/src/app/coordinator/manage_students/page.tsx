@@ -11,6 +11,7 @@ import { PiStudentFill } from 'react-icons/pi'
 import useStudents from '@/hooks/queries/useStudents'
 import { useCreateStudent, useUpdateStudent, useDeleteStudent } from '@/hooks/mutations/mutationUsers'
 import { ICreateStudent } from '@/interfaces/users'
+import Swal from 'sweetalert2'
 
 export default function StudentManagement() {
   const { data: students, refetch } = useStudents() // Use refetch here to reload data
@@ -23,6 +24,23 @@ export default function StudentManagement() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [editIndex, setEditIndex] = useState<number | null>(null)
+
+  const showToast = (type: 'success' | 'error', title: string, text: string) => {
+    Swal.fire({
+      toast: true,
+      position: 'top-right',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      icon: type,
+      title: title,
+      text: text,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+      },
+    })
+  }
 
   // Funções para abrir e fechar modais
   const openModal = () => setIsModalOpen(true)
@@ -54,28 +72,27 @@ export default function StudentManagement() {
     setIsDeleteModalOpen(true)
   }
   const closeDeleteModal = () => setIsDeleteModalOpen(false)
-
-  // Funções para adicionar, editar e deletar
   const handleAddStudent = () => {
     if (newStudent.ra && newStudent.name && newStudent.email) {
       createStudent(
         {
           ...newStudent,
-          password: newStudent.ra, // Explicitamente define a senha como RA
+          password: newStudent.ra,
         },
         {
           onSuccess: () => {
             refetch()
             closeModal()
+            showToast('success', 'Sucesso', 'Aluno adicionado com sucesso!')
           },
           onError: (error) => {
             console.error('Erro ao adicionar aluno:', error)
-            alert('Erro ao adicionar aluno. Verifique os dados.')
+            showToast('error', 'Erro', 'Não foi possível adicionar o aluno.')
           },
         }
       )
     } else {
-      alert('Preencha todos os campos!')
+      showToast('error', 'Erro', 'Preencha todos os campos!')
     }
   }
 
@@ -84,7 +101,7 @@ export default function StudentManagement() {
       if (newStudent.ra && newStudent.name && newStudent.email) {
         const updatedStudent = {
           ...newStudent,
-          password: newStudent.ra, // Explicitamente define a senha como RA
+          password: newStudent.ra,
           id: students[editIndex]?.id,
           iat: 0,
           exp: 0,
@@ -94,17 +111,18 @@ export default function StudentManagement() {
           onSuccess: () => {
             refetch()
             closeEditModal()
+            showToast('success', 'Sucesso', 'Aluno atualizado com sucesso!')
           },
           onError: (error) => {
             console.error('Erro ao editar aluno:', error)
-            alert('Erro ao editar aluno. Verifique os dados.')
+            showToast('error', 'Erro', 'Não foi possível editar o aluno.')
           },
         })
       } else {
-        alert('Preencha todos os campos!')
+        showToast('error', 'Erro', 'Preencha todos os campos!')
       }
     } else {
-      alert('Aluno não encontrado ou inválido.')
+      showToast('error', 'Erro', 'Aluno não encontrado ou inválido.')
     }
   }
 
@@ -112,12 +130,17 @@ export default function StudentManagement() {
     if (editIndex !== null && students && students[editIndex]) {
       deleteStudent(students[editIndex]?.ra, {
         onSuccess: () => {
-          refetch() // Refetch data after deleting a student
+          refetch()
+          closeDeleteModal()
+          showToast('success', 'Sucesso', 'Aluno excluído com sucesso!')
+        },
+        onError: (error) => {
+          console.error('Erro ao excluir aluno:', error)
+          showToast('error', 'Erro', 'Não foi possível excluir o aluno.')
         },
       })
-      closeDeleteModal()
     } else {
-      alert('Aluno não encontrado ou inválido.')
+      showToast('error', 'Erro', 'Aluno não encontrado ou inválido.')
     }
   }
 

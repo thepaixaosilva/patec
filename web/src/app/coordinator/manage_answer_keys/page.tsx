@@ -178,7 +178,7 @@ export default function AnswerKeyManagement() {
       </AnimatePresence>
 
       {/* Modal de Edição de Gabarito */}
-      {/* <AnimatePresence>
+       <AnimatePresence>
         {isEditModalOpen && selectedTestId && (
           <Modal isOpen={isEditModalOpen} onClose={closeEditModal} title="Cadastrar/Editar Gabarito">
             <motion.div>
@@ -193,7 +193,7 @@ export default function AnswerKeyManagement() {
             </motion.div>
           </Modal>
         )}
-      </AnimatePresence> */}
+      </AnimatePresence>
 
       {/* Modal de Confirmação de Exclusão */}
       <AnimatePresence>

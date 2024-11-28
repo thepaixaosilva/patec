@@ -38,7 +38,7 @@ export default function StudentManagement() {
         ra: students[index]?.ra || '',
         name: students[index]?.name || '',
         email: students[index]?.email || '',
-        password: '',
+        password: students[index]?.ra,
         role: students[index]?.role || 'student',
       })
       setIsEditModalOpen(true)
@@ -57,13 +57,23 @@ export default function StudentManagement() {
 
   // Funções para adicionar, editar e deletar
   const handleAddStudent = () => {
-    if (newStudent.ra && newStudent.name && newStudent.email && newStudent.password) {
-      createStudent(newStudent, {
-        onSuccess: () => {
-          refetch() // Refetch data after adding a student
+    if (newStudent.ra && newStudent.name && newStudent.email) {
+      createStudent(
+        {
+          ...newStudent,
+          password: newStudent.ra, // Explicitamente define a senha como RA
         },
-      })
-      closeModal()
+        {
+          onSuccess: () => {
+            refetch()
+            closeModal()
+          },
+          onError: (error) => {
+            console.error('Erro ao adicionar aluno:', error)
+            alert('Erro ao adicionar aluno. Verifique os dados.')
+          },
+        }
+      )
     } else {
       alert('Preencha todos os campos!')
     }
@@ -71,9 +81,10 @@ export default function StudentManagement() {
 
   const handleEditStudent = () => {
     if (editIndex !== null && students && students[editIndex]) {
-      if (newStudent.ra && newStudent.name && newStudent.email && newStudent.password) {
+      if (newStudent.ra && newStudent.name && newStudent.email) {
         const updatedStudent = {
           ...newStudent,
+          password: newStudent.ra, // Explicitamente define a senha como RA
           id: students[editIndex]?.id,
           iat: 0,
           exp: 0,
@@ -81,10 +92,14 @@ export default function StudentManagement() {
 
         updateStudent(updatedStudent, {
           onSuccess: () => {
-            refetch() // Refetch data after updating a student
+            refetch()
+            closeEditModal()
+          },
+          onError: (error) => {
+            console.error('Erro ao editar aluno:', error)
+            alert('Erro ao editar aluno. Verifique os dados.')
           },
         })
-        closeEditModal()
       } else {
         alert('Preencha todos os campos!')
       }
@@ -137,6 +152,7 @@ export default function StudentManagement() {
 
         {students?.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-gray-500 bg-gray-50 rounded-xl">
+            <PiStudentFill className="text-5xl mb-4 opacity-50" />
             <p className="text-xl text-center">Nenhum aluno cadastrado.</p>
           </div>
         ) : (
@@ -144,44 +160,48 @@ export default function StudentManagement() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
+            className="w-full" // Adicionei esta classe para manter a consistência
           >
-            <table className="w-full border-collapse">
-              <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                <tr>
-                  <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">RA</th>
-                  <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">Nome</th>
-                  <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">E-mail</th>
-                  <th className="p-4 w-1/12"></th>
-                  <th className="p-4 w-1/12"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {students?.map((student, index) => (
-                  <motion.tr
-                    key={index}
-                    className="hover:bg-blue-50/50 transition-colors duration-150"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.1 }}
-                  >
-                    <td className="p-4 w-2/6 font-medium text-gray-700">{student.ra}</td>
-                    <td className="p-4 w-2/6 text-gray-600">{student.name}</td>
-                    <td className="p-4 w-2/6 text-gray-600">{student.email}</td>
-                    <td className="p-4 w-1/12 text-center">
-                      <Button onClick={() => openEditModal(index)} className="text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors">
-                        <FaPencilAlt size={20} />
-                      </Button>
-                    </td>
-                    <td className="p-4 w-1/12 text-center">
-                      <Button onClick={() => openDeleteModal(index)} className="text-red-600 hover:text-red-700 p-3 hover:bg-red-50 rounded-xl transition-colors">
-                        <FaRegTrashCan size={20} />
-                      </Button>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="max-h-96 overflow-y-auto">
+              {' '}
+              {/* Novo container com rolagem */}
+              <table className="bg-white rounded-xl shadow-lg w-full border border-gray-100">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0 z-10">
+                  <tr>
+                    <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">RA</th>
+                    <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">Nome</th>
+                    <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">E-mail</th>
+                    <th className="p-4 w-1/12"></th>
+                    <th className="p-4 w-1/12"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {students?.map((student, index) => (
+                    <motion.tr
+                      key={index}
+                      className="hover:bg-blue-50/50 transition-colors duration-150"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.1 }}
+                    >
+                      <td className="p-4 w-2/6 font-medium text-gray-700">{student.ra}</td>
+                      <td className="p-4 w-2/6 text-gray-600">{student.name}</td>
+                      <td className="p-4 w-2/6 text-gray-600">{student.email}</td>
+                      <td className="p-4 w-1/12 text-center">
+                        <Button onClick={() => openEditModal(index)} className="text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors">
+                          <FaPencilAlt size={20} />
+                        </Button>
+                      </td>
+                      <td className="p-4 w-1/12 text-center">
+                        <Button onClick={() => openDeleteModal(index)} className="text-red-600 hover:text-red-700 p-3 hover:bg-red-50 rounded-xl transition-colors">
+                          <FaRegTrashCan size={20} />
+                        </Button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </motion.div>
         )}
       </motion.div>
@@ -248,6 +268,7 @@ export default function StudentManagement() {
                 value={newStudent.ra}
                 onChange={(e) => setNewStudent({ ...newStudent, ra: e.target.value })}
                 className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                disabled
               />
               <Input
                 type="text"

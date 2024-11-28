@@ -1,219 +1,128 @@
-import { Button, Fieldset, HStack, Link } from '@chakra-ui/react'
-import { DialogActionTrigger, DialogBody, DialogCloseTrigger, DialogContent, DialogFooter, DialogHeader, DialogRoot, DialogTrigger } from './ui/dialog'
-import { Radio, RadioGroup } from '@/components/ui/radio'
-import { Stack, Text } from '@chakra-ui/react'
-import { z } from 'zod'
-import { Controller, useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useState } from 'react'
-import { Alert } from './ui/alert'
-import { CloseButton } from './ui/close-button'
-import { useCreateAnswerKeys, useUpdateAnswerKeys } from '@/hooks/mutations/mutationAnswerKeys'
-import useAnswerKeys from '@/hooks/queries/useAnswerKeys'
-import { Subjects } from '@/app/coordinator/manage_anwer_keys/page'
+import React, { useState } from "react";
 
-interface HeaderProps {
-  subjects: Subjects[],
-  testId: number,
+interface Subject {
+  id: number;
+  name: string;
 }
 
-const items = [
-  { value: 'A', label: 'A' },
-  { value: 'B', label: 'B' },
-  { value: 'C', label: 'C' },
-  { value: 'D', label: 'D' },
-  { value: 'E', label: 'E' },
-]
+interface AnswerKeys {
+  [subjectId: number]: string[];
+}
 
-const formSchema = z.object({
-  value: z.array(z.string({ message: 'Obrigatório' })),
-})
-type FormValues = z.infer<typeof formSchema>
+const mockSubjects: Subject[] = [
+  { id: 1, name: "Matemática" },
+  { id: 2, name: "Português" },
+  { id: 3, name: "Ciências" },
+];
 
-const FormAnswerKeys: React.FC<HeaderProps> = ({ subjects= [], testId }) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isAlertVisible, setIsAlertVisible] = useState(false)
-  const handleDialogClose = () => setIsDialogOpen(false)
+const AnswerKeyModal = () => {
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+  const [answerKeys, setAnswerKeys] = useState<AnswerKeys>({});
 
-  const subjectsName = subjects.map((subject) => subject.name)
-  const subjectsId = subjects.map((subject) => subject.id)
-  
-  const {
-    reset,
-    control,
-    handleSubmit, 
-    formState: { errors } 
-  } = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { value: [] },
-  })
+  const updateAnswer = (subjectId: number, questionIndex: number, answer: string) => {
+    setAnswerKeys((prev) => ({
+      ...prev,
+      [subjectId]: prev[subjectId]
+        ? prev[subjectId].map((ans, idx) => (idx === questionIndex ? answer : ans))
+        : Array(5).fill("").map((_, idx) => (idx === questionIndex ? answer : "")),
+    }));
+  };
 
-  const { mutate: createAnswerKeys, isError } = useCreateAnswerKeys()
-  const { mutate: updateAnswerKeys } = useUpdateAnswerKeys()
-  const { data: savedAnswers, } = useAnswerKeys(testId)
+  const handleSubmitAnswerKey = () => {
+    console.log("Gabarito Salvo:", answerKeys);
+    alert("Gabarito salvo com sucesso!");
+  };
 
-   useEffect(() => {
-    if (savedAnswers) {
-      const initialValues = subjectsId.flatMap((subjectId) => {
-        const answerSet = savedAnswers.find((answer) => answer.subjectId === subjectId)
-        return [
-          answerSet?.answer1,
-          answerSet?.answer2,
-          answerSet?.answer3,
-          answerSet?.answer4,
-          answerSet?.answer5,
-        ]
-      })
-      reset({ value: initialValues })
-    }
-  }, [savedAnswers, reset, subjectsId])
-
-  const onSubmit = handleSubmit((data) => {
-    const groupedData = subjectsId.map((subjectsId, index) => {
-      const subjectAnswers = data.value.slice(index * 5, (index + 1) * 5);
-      return [subjectsId, ...subjectAnswers]
-    })
-
-    for (const subjectData of groupedData) {
-      const [subjectsId, ...answers] = subjectData
-      const answerKeysExists = Array.isArray(savedAnswers) ? savedAnswers.find((answer) => 
-        answer.subjectId === subjectsId) : null
-      
-      const payload = {
-        answer1: String(answers[0]),
-        answer2: String(answers[1]),
-        answer3: String(answers[2]),
-        answer4: String(answers[3]),
-        answer5: String(answers[4]),
-        testDay: Number(testId),
-        subjectId: Number(subjectsId),
-      }
-
-      if (answerKeysExists?.id) {
-        updateAnswerKeys({
-          id: answerKeysExists.id, 
-          ...payload 
-        })
-      } else {
-      createAnswerKeys(payload, {
-        onSuccess: () => {
-          console.log(`Gabarito oficial da disciplina ${subjectsId} cadastrado com sucesso!`)
-        },
-        onError: (error) => {
-          console.error(`Erro ao cadastrar gabarito da disciplina ${subjectsId}:`, error)
-        }
-      })
-      }
-      if (!isError) {
-        reset()
-      }
-    }
-    setIsDialogOpen(false)
-    setIsAlertVisible(true)
-  })
+  const closeAnswerKeyModal = () => {
+    setSelectedSubject(null);
+  };
 
   return (
-    <div>
-      <form id="answersForm" onSubmit={onSubmit} className="flex flex-col gap-4 mx-auto w-[475px]">
-        <Fieldset.Root invalid={!!errors.value}>
+    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+      <div className="bg-white w-[500px] rounded-2xl shadow-lg p-8">
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
+          Cadastrar/Editar Gabarito
+        </h2>
 
-          {subjects.map((__, subjectIndex) => (
-            <div key={subjectIndex} className="mb-6">
-              <div className="flex items-center justify-start m-2">
-                <Stack>
-                  <Text fontWeight="bold" fontSize="lg">
-                    {subjectsName[subjectIndex]}
-                  </Text>
-                </Stack>
-              </div>
+        {/* Seleção de Disciplina */}
+        <div className="mb-6">
+          <label className="block text-lg font-semibold text-gray-700 mb-2">Selecione a Disciplina</label>
+          <select
+            value={selectedSubject?.id || ""}
+            onChange={(e) =>
+              setSelectedSubject(
+                mockSubjects.find((subject) => subject.id === parseInt(e.target.value)) || null
+              )
+            }
+            className="w-full p-3 bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            <option value="" disabled>Escolha uma disciplina</option>
+            {mockSubjects.map((subject) => (
+              <option key={subject.id} value={subject.id}>{subject.name}</option>
+            ))}
+          </select>
+        </div>
 
-              {Array.from({ length: 5 }).map((_, questionIndex) => (
-                <div key={questionIndex} className="flex">
-                  <div className="flex items-center justify-center m-2">
-                    <div className="mr-6">
-                      <p>Questão {questionIndex + 1}</p>
-                    </div>
-                    <Controller
-                      name={`value.${subjectIndex * 5 + questionIndex}`}
-                      control={control}
-                      render={({ field }) => (
-                        <RadioGroup
-                          name={field.name}
-                          value={field.value}
-                          onValueChange={({ value }) => {
-                            field.onChange(value)
-                          }}
-                        >
-                          <HStack gap="6">
-                            {items.map((item) => (
-                              <Radio key={item.value} value={item.value}>
-                                {item.label}
-                              </Radio>
-                            ))}
-                          </HStack>
-                        </RadioGroup>
-                      )}
-                    />
+        {/* Gabarito */}
+        {selectedSubject && (
+          <div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">
+              Gabarito de {selectedSubject.name}
+            </h3>
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map((questionNumber) => (
+                <div key={questionNumber} className="flex items-center justify-between">
+                  <span className="text-lg font-medium text-gray-700">Questão {questionNumber}</span>
+                  <div className="flex space-x-2">
+                    {["A", "B", "C", "D", "E"].map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => updateAnswer(
+                          selectedSubject.id,
+                          questionNumber - 1,
+                          option
+                        )}
+                        className={`
+                          w-10 h-10 rounded-full font-semibold
+                          ${
+                            answerKeys[selectedSubject.id]?.[questionNumber - 1] === option
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-200 text-gray-700"
+                          }
+                          hover:shadow-lg transition-transform transform hover:scale-110
+                        `}
+                      >
+                        {option}
+                      </button>
+                    ))}
                   </div>
-
-                  {errors.value?.[subjectIndex * 5 + questionIndex]?.message && (
-                    <div className="justify-end max-w-[150px]">
-                      <Text color="red.500" fontSize="sm" mt={2}>
-                        {errors.value[subjectIndex * 5 + questionIndex]?.message}
-                      </Text>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
-          ))}
-
-          <div className="flex items-center justify-center m-4">
-            <DialogRoot open={isDialogOpen} onOpenChange={(e) => setIsDialogOpen(e.open)}>
-              <DialogTrigger asChild>
-                <Button className="bg-blue-500 text-white px-4 py-2 rounded w-40 hover:scale-105 hover:bg-blue-600" variant="outline">
-                  Enviar respostas
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader></DialogHeader>
-                <DialogBody>
-                  <p>Deseja enviar suas respostas?</p>
-                </DialogBody>
-                <DialogFooter>
-                  <DialogActionTrigger asChild>
-                    <Button size="md" variant="outline" onClick={handleDialogClose}>
-                      Cancelar
-                    </Button>
-                  </DialogActionTrigger>
-                  <Button type="submit" form="answersForm" bg="black" color="white" w="75px" h="35px" onClick={handleDialogClose}>
-                    Enviar
-                  </Button>
-                </DialogFooter>
-                <DialogCloseTrigger />
-              </DialogContent>
-            </DialogRoot>
           </div>
-        </Fieldset.Root>
-      </form>
+        )}
 
-      {isAlertVisible && (
-        <Alert status="success" variant="subtle" borderRadius="md" mb={4}
-          position="fixed"
-          top="10%"
-          left="50%"
-          transform="translateX(-50%)"
-          zIndex={9999}
-          maxWidth="500px"
-          height="80px">
-          Formulário enviado com sucesso!
-          <Link href="/student/home">
-            <CloseButton position="absolute" right="8px" top="8px" onClick={() => setIsAlertVisible(false)} />
-          </Link>
-        </Alert>
-      )}
+        {/* Botões de ação */}
+        <div className="flex justify-between mt-6">
+          <button
+            onClick={closeAnswerKeyModal}
+            className="px-6 py-2 rounded-lg text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleSubmitAnswerKey}
+            disabled={!selectedSubject}
+            className={`px-6 py-2 rounded-lg text-white font-bold ${
+              selectedSubject ? "bg-green-500 hover:bg-green-600" : "bg-gray-300"
+            } transition-colors`}
+          >
+            Salvar Gabarito
+          </button>
+        </div>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default FormAnswerKeys
+export default AnswerKeyModal;

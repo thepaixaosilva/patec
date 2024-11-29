@@ -1,8 +1,8 @@
 import { useQuery } from 'react-query'
 import api from '@/config/api'  
-import { AnswerKeys } from '@/interfaces/answerKeys'
+import { IAnswerKeys } from '@/interfaces/answerKeys'
 
-const fetchAnswerKeys = () => api.get<AnswerKeys[]>('/answer-keys')
+const fetchAnswerKeys = () => api.get<IAnswerKeys[]>('/answer-keys')
 
 //implementei possibilidade de filtrar o get pelo id da avaliação
 export default function useAnswerKeys(testId?: number) {

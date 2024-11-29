@@ -1,4 +1,4 @@
-export interface StudentAnswers {
+export interface IStudentAnswers {
     id?: number //vai ser gerado automático no banco
     score?: number
     answer1: string

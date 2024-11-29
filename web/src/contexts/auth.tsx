@@ -3,12 +3,12 @@ import { createContext, useContext, ReactNode, useState, useEffect } from 'react
 import api from '@/config/api'
 import { IUser } from '@/interfaces/users'
 import { jwtDecode } from 'jwt-decode'
-import { useRouter } from 'next/navigation' // Use o hook correto para navegação
+import { useRouter } from 'next/navigation'
 
 interface AuthContextType {
   isAuthenticated: boolean
   user: IUser | null
-  login: (credentials: LoginCredentials) => Promise<void>
+  login: (credentials: LoginCredentials) => Promise<boolean>
   logout: () => void
 }
 
@@ -20,19 +20,18 @@ interface LoginCredentials {
 export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   user: null,
-  login: async () => {},
+  login: async () => false,
   logout: () => {},
 })
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState<IUser | null>(null)
-  const [redirectPath, setRedirectPath] = useState<string | null>(null) // Estado para redirecionamento
+  const [redirectPath, setRedirectPath] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-
     if (token) {
       validateToken(token)
     }
@@ -55,7 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else {
         setUser(decoded)
         setIsAuthenticated(true)
-        setRedirectPath(decoded.role === 'coordinator' ? '/coordinator/dashboard' : '/student/test')
+        setRedirectPath(decoded.role === 'coordinator' ? '/coordinator/dashboard' : '/student/home')
       }
     } catch (error) {
       console.error(error)
@@ -63,18 +62,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const login = async (credentials: LoginCredentials) => {
+  const login = async (credentials: LoginCredentials): Promise<boolean> => {
     try {
       const response = await api.post('/auth/login', credentials)
-
-      const { token, user } = response.data
+      const { token } = response.data
+  
+      if (!token) {
+        return false
+      }
+  
+      const decodedUser = jwtDecode<IUser>(token)
       localStorage.setItem('token', token)
-      setUser(user)
+      setUser(decodedUser)
       setIsAuthenticated(true)
+      
+      const redirectPath = decodedUser.role === 'coordinator' 
+        ? '/coordinator/dashboard' 
+        : '/student/home'
+      
+      router.push(redirectPath)
+      return true
     } catch (error) {
+      console.log('ERRO COMPLETO NO LOGIN:', error)  // Adicione esta linha
       setIsAuthenticated(false)
       setUser(null)
-      throw error
+      return false
     }
   }
 

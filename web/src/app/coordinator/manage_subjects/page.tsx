@@ -11,6 +11,7 @@ import { GiBookCover } from 'react-icons/gi'
 import useSubjects from '@/hooks/queries/useSubjects'
 import { useCreateSubject, useUpdateSubject, useDeleteSubject } from '@/hooks/mutations/mutationSubjects'
 import { ISubject } from '@/interfaces/subjects'
+import Swal from 'sweetalert2'
 
 export default function SubjectManagement() {
   const { data: subjects } = useSubjects()
@@ -19,16 +20,33 @@ export default function SubjectManagement() {
   const { mutate: updateSubject } = useUpdateSubject()
   const { mutate: deleteSubject } = useDeleteSubject()
 
-  const [newSubject, setNewSubject] = useState<ISubject>({ subjectId: '', name: '', semester: 0 })
+  const [newSubject, setNewSubject] = useState<ISubject>({ subjectId: '', name: '', semester: 1 })
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [editIndex, setEditIndex] = useState<number | null>(null)
 
+  const showToast = (type: 'success' | 'error', title: string, text: string) => {
+    Swal.fire({
+      toast: true,
+      position: 'top-right',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      icon: type,
+      title: title,
+      text: text,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+      },
+    })
+  }
+
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => {
     setIsModalOpen(false)
-    setNewSubject({ subjectId: '', name: '', semester: 0 })
+    setNewSubject({ subjectId: '', name: '', semester: 1 })
   }
 
   const openEditModal = (index: number) => {
@@ -41,7 +59,7 @@ export default function SubjectManagement() {
 
   const closeEditModal = () => {
     setIsEditModalOpen(false)
-    setNewSubject({ subjectId: '', name: '', semester: 0 })
+    setNewSubject({ subjectId: '', name: '', semester: 1 })
   }
 
   const openDeleteModal = (index: number) => {
@@ -56,13 +74,15 @@ export default function SubjectManagement() {
       createSubject(newSubject, {
         onSuccess: () => {
           closeModal()
+          showToast('success', 'Sucesso', 'Disciplina adicionada com sucesso!')
         },
         onError: (error) => {
           console.error('Erro ao adicionar disciplina:', error)
+          showToast('error', 'Erro', 'Não foi possível adicionar a disciplina.')
         },
       })
     } else {
-      alert('Preencha todos os campos!')
+      showToast('error', 'Erro', 'Preencha todos os campos!')
     }
   }
 
@@ -71,13 +91,15 @@ export default function SubjectManagement() {
       updateSubject(newSubject, {
         onSuccess: () => {
           closeEditModal()
+          showToast('success', 'Sucesso', 'Disciplina atualizada com sucesso!')
         },
         onError: (error) => {
           console.error('Erro ao editar disciplina:', error)
+          showToast('error', 'Erro', 'Não foi possível editar a disciplina.')
         },
       })
     } else {
-      alert('Preencha todos os campos!')
+      showToast('error', 'Erro', 'Preencha todos os campos!')
     }
   }
 
@@ -88,9 +110,11 @@ export default function SubjectManagement() {
         deleteSubject(subjectToDelete.subjectId, {
           onSuccess: () => {
             closeDeleteModal()
+            showToast('success', 'Sucesso', 'Disciplina excluída com sucesso!')
           },
           onError: (error) => {
             console.error('Erro ao excluir disciplina:', error)
+            showToast('error', 'Erro', 'Não foi possível excluir a disciplina.')
           },
         })
       }
@@ -135,50 +159,53 @@ export default function SubjectManagement() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
+            className="w-full" // Adicionei esta classe para manter a consistência
           >
-            <table className="w-full border-collapse">
-              <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                <tr>
-                  <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">Código</th>
-                  <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">Nome</th>
-                  <th className="p-4 w-2/6 text-center text-lg font-semibold text-gray-700">Semestre</th>
-                  <th className="p-4 w-1/12"></th>
-                  <th className="p-4 w-1/12"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {subjects?.map((subject: ISubject, index: number) => (
-                  <motion.tr
-                    key={index}
-                    className="hover:bg-blue-50/50 transition-colors duration-150"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.1 }}
-                  >
-                    <td className="p-4 w-2/6 font-medium text-gray-700">{subject.subjectId}</td>
-                    <td className="p-4 w-2/6 text-gray-600">{subject.name}</td>
-                    <td className="p-4 w-2/6 text-center">
-                      <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">{subject.semester}º Semestre</span>
-                    </td>
-                    <td className="p-4 w-1/12 text-center">
-                      <Button onClick={() => openEditModal(index)} className="text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors">
-                        <FaPencilAlt size={20} />
-                      </Button>
-                    </td>
-                    <td className="p-4 w-1/12 text-center">
-                      <Button onClick={() => openDeleteModal(index)} className="text-red-500 hover:text-red-600 p-3 hover:bg-red-50 rounded-xl transition-colors">
-                        <FaRegTrashCan size={20} />
-                      </Button>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="max-h-96 overflow-y-auto">
+              {' '}
+              {/* Novo container com rolagem */}
+              <table className="bg-white rounded-xl shadow-lg w-full border border-gray-100">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0 z-10">
+                  <tr>
+                    <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">Código</th>
+                    <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">Nome</th>
+                    <th className="p-4 w-2/6 text-center text-lg font-semibold text-gray-700">Semestre</th>
+                    <th className="p-4 w-1/12"></th>
+                    <th className="p-4 w-1/12"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subjects?.map((subject: ISubject, index: number) => (
+                    <motion.tr
+                      key={index}
+                      className="hover:bg-blue-50/50 transition-colors duration-150"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.1 }}
+                    >
+                      <td className="p-4 w-2/6 font-medium text-gray-700">{subject.subjectId}</td>
+                      <td className="p-4 w-2/6 text-gray-600">{subject.name}</td>
+                      <td className="p-4 w-2/6 text-center">
+                        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">{subject.semester}º Semestre</span>
+                      </td>
+                      <td className="p-4 w-1/12 text-center">
+                        <Button onClick={() => openEditModal(index)} className="text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors">
+                          <FaPencilAlt size={20} />
+                        </Button>
+                      </td>
+                      <td className="p-4 w-1/12 text-center">
+                        <Button onClick={() => openDeleteModal(index)} className="text-red-500 hover:text-red-600 p-3 hover:bg-red-50 rounded-xl transition-colors">
+                          <FaRegTrashCan size={20} />
+                        </Button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </motion.div>
         )}
 
-        {/* Modal de Adição */}
         <AnimatePresence>
           {isModalOpen && (
             <Modal isOpen={isModalOpen} onClose={closeModal} title="Adicionar Disciplina">
@@ -263,7 +290,7 @@ export default function SubjectManagement() {
           )}
         </AnimatePresence>
 
-        {/* Modal de Confirmação de Exclusão */}  
+        {/* Modal de Confirmação de Exclusão */}
         <AnimatePresence>
           {isDeleteModalOpen && (
             <Modal isOpen={isDeleteModalOpen} onClose={closeDeleteModal} title="Confirmar Exclusão">

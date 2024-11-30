@@ -5,7 +5,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import { existsSync, mkdirSync } from 'fs'
 
 async function bootstrap() {
-  const uploadFolder = process.env.NODE_ENV === 'production' ? './dist/uploads' : './uploads'
+  const uploadFolder = process.env.NODE_ENV === 'production' ? './dist/uploads' : '../uploads'
 
   if (!existsSync(uploadFolder)) {
     mkdirSync(uploadFolder, { recursive: true })

@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, HttpCode, HttpStatus, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, Delete, ParseIntPipe, HttpCode, HttpStatus, UseGuards } from '@nestjs/common'
 import { StudentAnswersService } from './student-answers.service'
 import { CreateStudentAnswerDto } from './dto/create-student-answer.dto'
-import { UpdateStudentAnswerDto } from './dto/update-student-answer.dto'
+// import { UpdateStudentAnswerDto } from './dto/update-student-answer.dto'
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBearerAuth, ApiSecurity } from '@nestjs/swagger'
 import { StudentAnswer } from './entities/student-answer.entity'
 import { AuthGuard } from 'src/guards/auth.guard'
@@ -14,7 +14,7 @@ import { AuthGuard } from 'src/guards/auth.guard'
 export class StudentAnswersController {
   constructor(private readonly studentAnswersService: StudentAnswersService) {}
 
-  @Post()
+  @Post(':subjectId/:testDate')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Create a new student answer',
@@ -33,8 +33,8 @@ export class StudentAnswersController {
     status: 400,
     description: 'Bad Request - Invalid data provided.',
   })
-  create(@Body() createStudentAnswerDto: CreateStudentAnswerDto) {
-    return this.studentAnswersService.create(createStudentAnswerDto)
+  create(@Param('subjectId') subjectId: string, @Param('testDate') testDate: string, @Body() createStudentAnswerDto: CreateStudentAnswerDto) {
+    return this.studentAnswersService.create(subjectId, testDate, createStudentAnswerDto)
   }
 
   @Get()
@@ -76,33 +76,33 @@ export class StudentAnswersController {
     return this.studentAnswersService.findOne(id)
   }
 
-  @Patch(':id')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Update a student answer',
-    description: "Updates a student answer's information by its ID.",
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'Student answer ID to update',
-    type: Number,
-  })
-  @ApiBody({
-    type: UpdateStudentAnswerDto,
-    description: 'Updated student answer data',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'The student answer has been successfully updated.',
-    type: StudentAnswer,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Student answer not found.',
-  })
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateStudentAnswerDto: UpdateStudentAnswerDto) {
-    return this.studentAnswersService.update(id, updateStudentAnswerDto)
-  }
+  // @Patch(':id')
+  // @HttpCode(HttpStatus.OK)
+  // @ApiOperation({
+  //   summary: 'Update a student answer',
+  //   description: "Updates a student answer's information by its ID.",
+  // })
+  // @ApiParam({
+  //   name: 'id',
+  //   description: 'Student answer ID to update',
+  //   type: Number,
+  // })
+  // @ApiBody({
+  //   type: UpdateStudentAnswerDto,
+  //   description: 'Updated student answer data',
+  // })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'The student answer has been successfully updated.',
+  //   type: StudentAnswer,
+  // })
+  // @ApiResponse({
+  //   status: 404,
+  //   description: 'Student answer not found.',
+  // })
+  // update(@Param('id', ParseIntPipe) id: number, @Body() updateStudentAnswerDto: UpdateStudentAnswerDto) {
+  //   return this.studentAnswersService.update(id, updateStudentAnswerDto)
+  // }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)

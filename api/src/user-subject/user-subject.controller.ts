@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, Delete, UseGuards, HttpCode, HttpStatus } from '@nestjs/common'
 import { UserSubjectService } from './user-subject.service'
 import { CreateUserSubjectDto } from './dto/create-user-subject.dto'
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger'
@@ -61,7 +61,7 @@ export class UserSubjectController {
     return this.userSubjectService.findAll()
   }
 
-  @Get('by-ra')
+  @Get('by-ra/:userRa')
   @ApiOperation({
     summary: 'Get subjects by user',
     description: 'Retrieves all subjects associated with a specific user RA.',
@@ -81,11 +81,11 @@ export class UserSubjectController {
     status: 404,
     description: 'User not found',
   })
-  findAllByUserRa(@Query('ra') userRa: string) {
+  findAllByUserRa(@Param('ra') userRa: string) {
     return this.userSubjectService.findAllByUserRa(userRa)
   }
 
-  @Get('by-subject')
+  @Get('by-subject/:subjectId')
   @ApiOperation({
     summary: 'Get users by subject',
     description: 'Retrieves all users associated with a specific subject.',
@@ -105,7 +105,7 @@ export class UserSubjectController {
     status: 404,
     description: 'Subject not found',
   })
-  findAllBySubjectId(@Query('subjectId') subjectId: string) {
+  findAllBySubjectId(@Param('subjectId') subjectId: string) {
     return this.userSubjectService.findAllBySubjectId(subjectId)
   }
 

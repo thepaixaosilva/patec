@@ -54,7 +54,7 @@ export class CreateStudentAnswerDto {
 
   @ApiProperty({
     description: 'The answer key used to grade the answers',
-    example: { id: 2 },
+    example: 2,
   })
   @IsNotEmpty({ message: 'Answer key is required!' })
   answerKey: AnswerKey

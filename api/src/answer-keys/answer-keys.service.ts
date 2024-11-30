@@ -4,6 +4,7 @@ import { UpdateAnswerKeyDto } from './dto/update-answer-key.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { AnswerKey } from './entities/answer-key.entity'
 import { Repository } from 'typeorm'
+import { format } from 'date-fns'
 
 @Injectable()
 export class AnswerKeysService {
@@ -38,6 +39,19 @@ export class AnswerKeysService {
    */
   findOne(id: number) {
     return this.answerKeyRepository.findOneBy({ id })
+  }
+
+  async search(subjectId: string, testDate: string) {
+    const formattedDate = format(new Date(testDate.split('-').reverse().join('-')), 'yyyy-MM-dd')
+
+    return this.answerKeyRepository
+      .createQueryBuilder('answerKey')
+      .innerJoinAndSelect('answerKey.subject', 'subject')
+      .innerJoinAndSelect('answerKey.testDay', 'testDay')
+      .select(['answerKey', 'testDay'])
+      .where('subject.subjectId = :subjectId', { subjectId })
+      .andWhere('DATE(testDay.testDate) = :testDate', { testDate: formattedDate }) // Compara apenas a parte da data
+      .getMany()
   }
 
   /**

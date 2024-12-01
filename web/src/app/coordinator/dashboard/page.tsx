@@ -4,12 +4,12 @@ import { PiStudentFill } from 'react-icons/pi'
 import { IoCalendar } from 'react-icons/io5'
 import { GiBookCover } from 'react-icons/gi'
 import { HiOutlineDocumentReport } from 'react-icons/hi'
-import { FaPenClip } from 'react-icons/fa6'
 import { LinkButton } from '@/components/ui/link-button'
 import { motion } from 'framer-motion'
 import { IoMdExit } from 'react-icons/io'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth'
+import { RiFileListLine } from 'react-icons/ri'
 
 interface ButtonItem {
   href?: string
@@ -39,7 +39,7 @@ export default function Dashboard() {
   const buttonItems: ButtonItem[] = [
     {
       href: '/coordinator/manage_answer_keys',
-      icon: <FaPenClip className="mb-5 size-28" />,
+      icon: <RiFileListLine className="mb-5 size-28" />,
       label: 'Gabaritos',
       bgColor: 'bg-blue-500 hover:bg-blue-600',
       description: 'Gerencie os gabaritos das avaliações.',

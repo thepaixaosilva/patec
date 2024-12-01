@@ -14,7 +14,7 @@ export const useCreateStudent = () => {
   })
 }
 
-const updateUser = (student: IUser) => api.put<IUser>(`/users/${student.id}`, student)
+const updateUser = (student: IUser) => api.put<IUser>(`/users/${student.ra}`, student)
 
 export const useUpdateStudent = () => {
   const queryClient = useQueryClient()

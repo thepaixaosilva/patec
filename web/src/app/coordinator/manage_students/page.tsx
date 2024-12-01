@@ -11,6 +11,7 @@ import { PiStudentFill } from 'react-icons/pi'
 import useStudents from '@/hooks/queries/useStudents'
 import { useCreateStudent, useUpdateStudent, useDeleteStudent } from '@/hooks/mutations/mutationUsers'
 import { ICreateStudent } from '@/interfaces/users'
+import Swal from 'sweetalert2'
 
 export default function StudentManagement() {
   const { data: students, refetch } = useStudents() // Use refetch here to reload data
@@ -23,6 +24,23 @@ export default function StudentManagement() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [editIndex, setEditIndex] = useState<number | null>(null)
+
+  const showToast = (type: 'success' | 'error', title: string, text: string) => {
+    Swal.fire({
+      toast: true,
+      position: 'top-right',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      icon: type,
+      title: title,
+      text: text,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+      },
+    })
+  }
 
   // Funções para abrir e fechar modais
   const openModal = () => setIsModalOpen(true)
@@ -38,7 +56,7 @@ export default function StudentManagement() {
         ra: students[index]?.ra || '',
         name: students[index]?.name || '',
         email: students[index]?.email || '',
-        password: '',
+        password: students[index]?.ra,
         role: students[index]?.role || 'student',
       })
       setIsEditModalOpen(true)
@@ -54,26 +72,36 @@ export default function StudentManagement() {
     setIsDeleteModalOpen(true)
   }
   const closeDeleteModal = () => setIsDeleteModalOpen(false)
-
-  // Funções para adicionar, editar e deletar
   const handleAddStudent = () => {
-    if (newStudent.ra && newStudent.name && newStudent.email && newStudent.password) {
-      createStudent(newStudent, {
-        onSuccess: () => {
-          refetch() // Refetch data after adding a student
+    if (newStudent.ra && newStudent.name && newStudent.email) {
+      createStudent(
+        {
+          ...newStudent,
+          password: newStudent.ra,
         },
-      })
-      closeModal()
+        {
+          onSuccess: () => {
+            refetch()
+            closeModal()
+            showToast('success', 'Sucesso', 'Aluno adicionado com sucesso!')
+          },
+          onError: (error) => {
+            console.error('Erro ao adicionar aluno:', error)
+            showToast('error', 'Erro', 'Não foi possível adicionar o aluno.')
+          },
+        }
+      )
     } else {
-      alert('Preencha todos os campos!')
+      showToast('error', 'Erro', 'Preencha todos os campos!')
     }
   }
 
   const handleEditStudent = () => {
     if (editIndex !== null && students && students[editIndex]) {
-      if (newStudent.ra && newStudent.name && newStudent.email && newStudent.password) {
+      if (newStudent.ra && newStudent.name && newStudent.email) {
         const updatedStudent = {
           ...newStudent,
+          password: newStudent.ra,
           id: students[editIndex]?.id,
           iat: 0,
           exp: 0,
@@ -81,15 +109,20 @@ export default function StudentManagement() {
 
         updateStudent(updatedStudent, {
           onSuccess: () => {
-            refetch() // Refetch data after updating a student
+            refetch()
+            closeEditModal()
+            showToast('success', 'Sucesso', 'Aluno atualizado com sucesso!')
+          },
+          onError: (error) => {
+            console.error('Erro ao editar aluno:', error)
+            showToast('error', 'Erro', 'Não foi possível editar o aluno.')
           },
         })
-        closeEditModal()
       } else {
-        alert('Preencha todos os campos!')
+        showToast('error', 'Erro', 'Preencha todos os campos!')
       }
     } else {
-      alert('Aluno não encontrado ou inválido.')
+      showToast('error', 'Erro', 'Aluno não encontrado ou inválido.')
     }
   }
 
@@ -97,12 +130,17 @@ export default function StudentManagement() {
     if (editIndex !== null && students && students[editIndex]) {
       deleteStudent(students[editIndex]?.ra, {
         onSuccess: () => {
-          refetch() // Refetch data after deleting a student
+          refetch()
+          closeDeleteModal()
+          showToast('success', 'Sucesso', 'Aluno excluído com sucesso!')
+        },
+        onError: (error) => {
+          console.error('Erro ao excluir aluno:', error)
+          showToast('error', 'Erro', 'Não foi possível excluir o aluno.')
         },
       })
-      closeDeleteModal()
     } else {
-      alert('Aluno não encontrado ou inválido.')
+      showToast('error', 'Erro', 'Aluno não encontrado ou inválido.')
     }
   }
 
@@ -137,6 +175,7 @@ export default function StudentManagement() {
 
         {students?.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-gray-500 bg-gray-50 rounded-xl">
+            <PiStudentFill className="text-5xl mb-4 opacity-50" />
             <p className="text-xl text-center">Nenhum aluno cadastrado.</p>
           </div>
         ) : (
@@ -144,44 +183,48 @@ export default function StudentManagement() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
+            className="w-full" // Adicionei esta classe para manter a consistência
           >
-            <table className="w-full border-collapse">
-              <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                <tr>
-                  <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">RA</th>
-                  <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">Nome</th>
-                  <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">E-mail</th>
-                  <th className="p-4 w-1/12"></th>
-                  <th className="p-4 w-1/12"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {students?.map((student, index) => (
-                  <motion.tr
-                    key={index}
-                    className="hover:bg-blue-50/50 transition-colors duration-150"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.1 }}
-                  >
-                    <td className="p-4 w-2/6 font-medium text-gray-700">{student.ra}</td>
-                    <td className="p-4 w-2/6 text-gray-600">{student.name}</td>
-                    <td className="p-4 w-2/6 text-gray-600">{student.email}</td>
-                    <td className="p-4 w-1/12 text-center">
-                      <Button onClick={() => openEditModal(index)} className="text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors">
-                        <FaPencilAlt size={20} />
-                      </Button>
-                    </td>
-                    <td className="p-4 w-1/12 text-center">
-                      <Button onClick={() => openDeleteModal(index)} className="text-red-600 hover:text-red-700 p-3 hover:bg-red-50 rounded-xl transition-colors">
-                        <FaRegTrashCan size={20} />
-                      </Button>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="max-h-96 overflow-y-auto">
+              {' '}
+              {/* Novo container com rolagem */}
+              <table className="bg-white rounded-xl shadow-lg w-full border border-gray-100">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0 z-10">
+                  <tr>
+                    <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">RA</th>
+                    <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">Nome</th>
+                    <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">E-mail</th>
+                    <th className="p-4 w-1/12"></th>
+                    <th className="p-4 w-1/12"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {students?.map((student, index) => (
+                    <motion.tr
+                      key={index}
+                      className="hover:bg-blue-50/50 transition-colors duration-150"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.1 }}
+                    >
+                      <td className="p-4 w-2/6 font-medium text-gray-700">{student.ra}</td>
+                      <td className="p-4 w-2/6 text-gray-600">{student.name}</td>
+                      <td className="p-4 w-2/6 text-gray-600">{student.email}</td>
+                      <td className="p-4 w-1/12 text-center">
+                        <Button onClick={() => openEditModal(index)} className="text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors">
+                          <FaPencilAlt size={20} />
+                        </Button>
+                      </td>
+                      <td className="p-4 w-1/12 text-center">
+                        <Button onClick={() => openDeleteModal(index)} className="text-red-600 hover:text-red-700 p-3 hover:bg-red-50 rounded-xl transition-colors">
+                          <FaRegTrashCan size={20} />
+                        </Button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </motion.div>
         )}
       </motion.div>
@@ -248,6 +291,7 @@ export default function StudentManagement() {
                 value={newStudent.ra}
                 onChange={(e) => setNewStudent({ ...newStudent, ra: e.target.value })}
                 className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                disabled
               />
               <Input
                 type="text"

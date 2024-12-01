@@ -2,9 +2,8 @@
 import { useState } from 'react'
 import { FaPencilAlt } from 'react-icons/fa'
 import { FaPaperclip, FaRegTrashCan } from 'react-icons/fa6'
-import { ImBooks } from 'react-icons/im'
 import { FaArrowLeft } from 'react-icons/fa6'
-import { Button, Input } from '@chakra-ui/react'
+import { Button, Input, Select } from '@chakra-ui/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import { ICreateTestDay } from '@/interfaces/testDay'
@@ -12,6 +11,8 @@ import Modal from '@/components/shared/Modal'
 import { useCreateTestDay, useUpdateTestDay, useDeleteTestDay } from '@/hooks/mutations/mutationTestDay'
 import useTestDays from '@/hooks/queries/useTestDay'
 import { LinkButton } from '@/components/ui/link-button'
+import { IoCalendar } from 'react-icons/io5'
+import Swal from 'sweetalert2'
 
 export default function TestManagement() {
   const { data: testDays = [] } = useTestDays() // Utilize o hook para obter os testDays
@@ -21,6 +22,23 @@ export default function TestManagement() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [editIndex, setEditIndex] = useState<number | null>(null)
+
+  const showToast = (type: 'success' | 'error', title: string, text: string) => {
+    Swal.fire({
+      toast: true,
+      position: 'top-right',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      icon: type,
+      title: title,
+      text: text,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+      },
+    })
+  }
 
   const { mutate: createTestDay } = useCreateTestDay()
   const { mutate: updateTestDay } = useUpdateTestDay()
@@ -39,6 +57,7 @@ export default function TestManagement() {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const openEditModal = (index: number) => {
     // setEditIndex(index)
     // setNewTestDay(testDays[index])
@@ -64,8 +83,9 @@ export default function TestManagement() {
 
       createTestDay(formData)
       closeModal()
+      showToast('success', 'Sucesso', 'Avaliação adicionada com sucesso!')
     } else {
-      alert('Preencha todos os campos e anexe um arquivo!')
+      showToast('error', 'Erro', 'Preencha todos os campos e anexe um arquivo!')
     }
   }
 
@@ -78,8 +98,9 @@ export default function TestManagement() {
 
       updateTestDay({ testDayId: newTestDay.id, testDay: formData })
       closeEditModal()
+      showToast('success', 'Sucesso', 'Avaliação atualizada com sucesso!')
     } else {
-      alert('Preencha todos os campos!')
+      showToast('error', 'Erro', 'Preencha todos os campos!')
     }
   }
 
@@ -87,13 +108,12 @@ export default function TestManagement() {
     if (editIndex !== null) {
       deleteTestDay(testDays[editIndex].id)
       closeDeleteModal()
+      showToast('success', 'Sucesso', 'Avaliação excluída com sucesso!')
     }
   }
 
-  console.log(testDays)
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-200 via-pink-200 to-red-200 py-8">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-200 via-violet-200 to-purple-200 py-8">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -108,82 +128,82 @@ export default function TestManagement() {
         </Link>
 
         <div className="flex flex-col items-center mb-12">
-          <ImBooks className="text-6xl text-red-600 mb-4" />
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">Gerenciamento de Avaliações</h1>
-          <div className="h-1 w-24 bg-gradient-to-r from-red-600 to-orange-600 rounded-full" />
+          <IoCalendar className="text-6xl text-purple-600 mb-4" />
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent">Gerenciamento de Avaliações</h1>
+          <div className="h-1 w-24 bg-gradient-to-r from-purple-600 to-fuchsia-600 rounded-full" />
         </div>
 
         <Button
           onClick={openModal}
-          className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-8 py-4 rounded-xl hover:shadow-lg transition-all duration-200 mb-8 text-lg font-semibold flex items-center gap-2 hover:scale-105"
+          className="bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white px-8 py-4 rounded-xl hover:shadow-lg transition-all duration-200 mb-8 text-lg font-semibold flex items-center gap-2 hover:scale-105"
         >
           <span className="text-2xl">+</span> Adicionar Avaliação
         </Button>
 
         {testDays.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-gray-500 bg-gray-50 rounded-xl">
-            <ImBooks className="text-5xl mb-4 opacity-50" />
+            <IoCalendar className="text-5xl mb-4 opacity-50" />
             <p className="text-xl text-center">Nenhuma avaliação cadastrada.</p>
           </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
-          >
-            <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-              <tr>
-                <th className="p-4 w-1/4 text-start text-lg font-semibold text-gray-700">Código</th>
-                <th className="p-4 w-1/4 text-start text-lg font-semibold text-gray-700">Data</th>
-                <th className="p-4 w-1/4 text-start text-lg font-semibold text-gray-700">Tipo</th>
-                <th className="p-4 w-1/6 text-center text-lg font-semibold text-gray-700">Arquivo</th>
-                <th className="p-4 w-1/12 text-center"></th>
-                <th className="p-4 w-1/12 text-center"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {testDays.map((test, index) => {
-                // Converter para Date, se necessário
-                const testDate = test.testDate instanceof Date ? test.testDate : new Date(test.testDate)
+          <motion.div className="w-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+            <div className="max-h-96 overflow-y-auto">
+              <table className="bg-white rounded-xl shadow-lg w-full border border-gray-100">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0 z-10">
+                  <tr>
+                    <th className="p-4 w-1/4 text-start text-lg font-semibold text-gray-700">Código</th>
+                    <th className="p-4 w-1/4 text-start text-lg font-semibold text-gray-700">Data</th>
+                    <th className="p-4 w-1/4 text-start text-lg font-semibold text-gray-700">Tipo</th>
+                    <th className="p-4 w-1/6 text-center text-lg font-semibold text-gray-700">Arquivo</th>
+                    <th className="p-4 w-1/12 text-center"></th>
+                    <th className="p-4 w-1/12 text-center"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {testDays.map((test, index) => {
+                    const testDate = test.testDate instanceof Date ? test.testDate : new Date(test.testDate)
 
-                return (
-                  <motion.tr
-                    key={index}
-                    className="hover:bg-blue-50/50 transition-colors duration-150"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.1 }}
-                  >
-                    <td className="p-4 w-1/4 font-medium text-gray-700">{test.id}</td>
-                    <td className="p-4 w-1/4 text-gray-600">{testDate.toLocaleDateString()}</td>
-                    <td className="p-4 w-1/4 text-gray-600">{test.testType}</td>
-                    {test.filePath ? (
-                      <LinkButton
-                        as="a"
-                        href={`/uploads/test-days/${test.filePath}`} // URL do servidor para o PDF
-                        rel="noopener noreferrer"
-                        className="text-center text-green-600 hover:text-green-700 p-3 hover:bg-green-50 rounded-xl transition-colors"
+                    return (
+                      <motion.tr
+                        key={index}
+                        className="hover:bg-blue-50/50 transition-colors duration-150"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.1 }}
                       >
-                        <FaPaperclip size={20} />
-                      </LinkButton>
-                    ) : (
-                      <span className="text-gray-500">N/A</span>
-                    )}
-                    <td className="p-4 w-1/12 text-center">
-                      <Button onClick={() => openEditModal(index)} className="text-center text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors">
-                        <FaPencilAlt size={20} />
-                      </Button>
-                    </td>
-                    <td className="p-4 w-1/12 text-center">
-                      <Button onClick={() => openDeleteModal(index)} className="text-center text-red-500 hover:text-red-600 p-3 hover:bg-red-50 rounded-xl transition-colors">
-                        <FaRegTrashCan size={20} />
-                      </Button>
-                    </td>
-                  </motion.tr>
-                )
-              })}
-            </tbody>
+                        <td className="p-4 w-1/4 font-medium text-gray-700">{test.id}</td>
+                        <td className="p-4 w-1/4 text-gray-600">{testDate.toLocaleDateString()}</td>
+                        <td className="p-4 w-1/4 text-gray-600">{test.testType}</td>
+                        {test.filePath ? (
+                          <td className="p-4 w-1/6 text-center">
+                            <LinkButton
+                              as="a"
+                              href={`/uploads/test-days/${test.filePath}`}
+                              rel="noopener noreferrer"
+                              className="text-center text-green-600 hover:text-green-700 p-3 hover:bg-green-50 rounded-xl transition-colors"
+                            >
+                              <FaPaperclip size={20} />
+                            </LinkButton>
+                          </td>
+                        ) : (
+                          <td className="w-[15%] text-center text-lg font-semibold text-gray-700"></td>
+                        )}
+                        <td className="p-4 w-1/12 text-center">
+                          <Button onClick={() => openEditModal(index)} className="text-center text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors">
+                            <FaPencilAlt size={20} />
+                          </Button>
+                        </td>
+                        <td className="p-4 w-1/12 text-center">
+                          <Button onClick={() => openDeleteModal(index)} className="text-center text-red-500 hover:text-red-600 p-3 hover:bg-red-50 rounded-xl transition-colors">
+                            <FaRegTrashCan size={20} />
+                          </Button>
+                        </td>
+                      </motion.tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </motion.div>
         )}
         {/* Modal de Adição */}
@@ -204,13 +224,17 @@ export default function TestManagement() {
                   onChange={(e) => setNewTestDay({ ...newTestDay, testDate: new Date(e.target.value) })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
                 />
-                <Input
-                  type="text"
-                  placeholder="Tipo"
+                <Select
+                  placeholder="Selecione o tipo"
                   value={newTestDay.testType}
                   onChange={(e) => setNewTestDay({ ...newTestDay, testType: e.target.value })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
-                />
+                >
+                  <option value="Prova">Prova</option>
+                  <option value="Trabalho">Trabalho</option>
+                  <option value="Teste Prático">Teste Prático</option>
+                  <option value="Outro">Outro</option>
+                </Select>
                 {/* Anexar avaliação */}
                 <div className="flex flex-col">
                   <label htmlFor="fileUpload" className="flex items-center space-x-2 text-blue-600 cursor-pointer">
@@ -243,21 +267,23 @@ export default function TestManagement() {
                 className="space-y-6"
               >
                 <Input
-
                   type="date"
                   placeholder="Data"
                   value={newTestDay.testDate.toISOString().split('T')[0]}
                   onChange={(e) => setNewTestDay({ ...newTestDay, testDate: new Date(e.target.value) })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
                 />
-                <Input
-                  type="text"
-                  placeholder="Tipo"
-
+                <Select
+                  placeholder="Selecione o tipo"
                   value={newTestDay.testType}
                   onChange={(e) => setNewTestDay({ ...newTestDay, testType: e.target.value })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
-                />
+                >
+                  <option value="Prova">Prova</option>
+                  <option value="Trabalho">Trabalho</option>
+                  <option value="Teste Prático">Teste Prático</option>
+                  <option value="Outro">Outro</option>
+                </Select>
                 {/* Anexar avaliação 
                 <div className="flex flex-col">
                   <label htmlFor="fileUpload" className="flex items-center space-x-2 text-blue-600 cursor-pointer">
@@ -274,7 +300,7 @@ export default function TestManagement() {
                 <div className="flex justify-end">
                   <Button
                     onClick={handleEditTest}
-                    className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 text-lg font-semibold hover:scale-105"
+                    className="bg-gradient-to-r from-red-600 to-fuchsia-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 text-lg font-semibold hover:scale-105"
                   >
                     Salvar
                   </Button>

@@ -14,6 +14,7 @@ import { useCreateSubject, useUpdateSubject, useDeleteSubject } from '@/hooks/mu
 import { ISubject } from '@/interfaces/subjects'
 import useUserSubjects from '@/hooks/queries/useUserSubjects'
 import { useUploadUserSubjectCsv } from '@/hooks/mutations/mutationUserSubjects'
+import Swal from 'sweetalert2'
 
 export default function SubjectManagement() {
   
@@ -40,10 +41,27 @@ export default function SubjectManagement() {
   //const uploadCsvMutation = useUploadUserSubjectCsv();
   //const deleteUserSubject = useDeleteSubject();
   
+  const showToast = (type: 'success' | 'error', title: string, text: string) => {
+    Swal.fire({
+      toast: true,
+      position: 'top-right',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      icon: type,
+      title: title,
+      text: text,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+      },
+    })
+  }
+
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => {
     setIsModalOpen(false)
-    setNewSubject({ subjectId: '', name: '', semester: 0 })
+    setNewSubject({ subjectId: '', name: '', semester: 1 })
   }
 
   const openEditModal = (index: number) => {
@@ -56,7 +74,7 @@ export default function SubjectManagement() {
 
   const closeEditModal = () => {
     setIsEditModalOpen(false)
-    setNewSubject({ subjectId: '', name: '', semester: 0 })
+    setNewSubject({ subjectId: '', name: '', semester: 1 })
   }
 
   const openDeleteModal = (index: number) => {
@@ -80,13 +98,15 @@ export default function SubjectManagement() {
       createSubject(newSubject, {
         onSuccess: () => {
           closeModal()
+          showToast('success', 'Sucesso', 'Disciplina adicionada com sucesso!')
         },
         onError: (error) => {
           console.error('Erro ao adicionar disciplina:', error)
+          showToast('error', 'Erro', 'Não foi possível adicionar a disciplina.')
         },
       })
     } else {
-      alert('Preencha todos os campos!')
+      showToast('error', 'Erro', 'Preencha todos os campos!')
     }
   }
 
@@ -95,13 +115,15 @@ export default function SubjectManagement() {
       updateSubject(newSubject, {
         onSuccess: () => {
           closeEditModal()
+          showToast('success', 'Sucesso', 'Disciplina atualizada com sucesso!')
         },
         onError: (error) => {
           console.error('Erro ao editar disciplina:', error)
+          showToast('error', 'Erro', 'Não foi possível editar a disciplina.')
         },
       })
     } else {
-      alert('Preencha todos os campos!')
+      showToast('error', 'Erro', 'Preencha todos os campos!')
     }
   }
 
@@ -112,9 +134,11 @@ export default function SubjectManagement() {
         deleteSubject(subjectToDelete.subjectId, {
           onSuccess: () => {
             closeDeleteModal()
+            showToast('success', 'Sucesso', 'Disciplina excluída com sucesso!')
           },
           onError: (error) => {
             console.error('Erro ao excluir disciplina:', error)
+            showToast('error', 'Erro', 'Não foi possível excluir a disciplina.')
           },
         })
       }
@@ -179,7 +203,7 @@ export default function SubjectManagement() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
+            className="w-full" // Adicionei esta classe para manter a consistência
           >
             <table className="w-full border-collapse">
               <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
@@ -232,7 +256,6 @@ export default function SubjectManagement() {
           </motion.div>
         )}
 
-        {/* Modal de Adição */}
         <AnimatePresence>
           {isModalOpen && (
             <Modal isOpen={isModalOpen} onClose={closeModal} title="Adicionar Disciplina">

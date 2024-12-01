@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { FaPencilAlt } from 'react-icons/fa'
 import { FaRegTrashCan } from 'react-icons/fa6'
+import { FaCloudUploadAlt } from 'react-icons/fa'
 import { FaArrowLeft } from 'react-icons/fa6'
 import Modal from '@/components/shared/Modal'
 import { Button, Input } from '@chakra-ui/react'
@@ -11,20 +12,34 @@ import { GiBookCover } from 'react-icons/gi'
 import useSubjects from '@/hooks/queries/useSubjects'
 import { useCreateSubject, useUpdateSubject, useDeleteSubject } from '@/hooks/mutations/mutationSubjects'
 import { ISubject } from '@/interfaces/subjects'
+import useUserSubjects from '@/hooks/queries/useUserSubjects'
+import { useUploadUserSubjectCsv } from '@/hooks/mutations/mutationUserSubjects'
 
 export default function SubjectManagement() {
-  const { data: subjects } = useSubjects()
+  
+  
+  const [subjectId] = useState<string>(''); 
+  const [csvFile, setCsvFile] = useState<File | null>(null); 
 
-  const { mutate: createSubject } = useCreateSubject()
-  const { mutate: updateSubject } = useUpdateSubject()
-  const { mutate: deleteSubject } = useDeleteSubject()
-
+  const uploadCsvMutation = useUploadUserSubjectCsv();
+  const [uploading, setUploading] = useState(false);
+  
   const [newSubject, setNewSubject] = useState<ISubject>({ subjectId: '', name: '', semester: 0 })
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [editIndex, setEditIndex] = useState<number | null>(null)
 
+  const { data: subjects } = useSubjects()
+  const { mutate: createSubject } = useCreateSubject()
+  const { mutate: updateSubject } = useUpdateSubject()
+  const { mutate: deleteSubject } = useDeleteSubject()
+
+  const { data: userSubject } = useUserSubjects(subjectId);
+  //const uploadCsvMutation = useUploadUserSubjectCsv();
+  //const deleteUserSubject = useDeleteSubject();
+  
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => {
     setIsModalOpen(false)
@@ -50,6 +65,15 @@ export default function SubjectManagement() {
   }
 
   const closeDeleteModal = () => setIsDeleteModalOpen(false)
+
+  const openUploadModal = (index: number) => {
+    setEditIndex(index)
+    if (subjects) {
+      setNewSubject(subjects[index])
+      setIsUploadModalOpen(true)
+    }
+  }
+  const closeUploadModal = () => setIsUploadModalOpen(false)
 
   const handleAddSubject = async () => {
     if (newSubject.subjectId && newSubject.name && newSubject.semester) {
@@ -97,6 +121,26 @@ export default function SubjectManagement() {
     }
   }
 
+  const handleUploadCsv = async () => {
+    if (!csvFile || !newSubject.subjectId) {
+      alert('Por favor, selecione um arquivo e certifique-se de que a disciplina foi selecionada.');
+      return;
+    }
+  
+    setUploading(true); 
+    try {
+      await uploadCsvMutation.mutateAsync({ file: csvFile, subjectId: newSubject.subjectId });
+      alert('Arquivo enviado e processado com sucesso!');
+      setCsvFile(null);
+      closeUploadModal();
+    } catch (error) {
+      console.error('Erro ao fazer upload do CSV:', error);
+      alert('Erro ao fazer upload do CSV.');
+    } finally {
+      setUploading(false); 
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-red-200 via-orange-200 to-amber-200 py-8">
       <motion.div
@@ -140,9 +184,10 @@ export default function SubjectManagement() {
             <table className="w-full border-collapse">
               <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                 <tr>
-                  <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">Código</th>
-                  <th className="p-4 w-2/6 text-start text-lg font-semibold text-gray-700">Nome</th>
-                  <th className="p-4 w-2/6 text-center text-lg font-semibold text-gray-700">Semestre</th>
+                  <th className="p-4 w-2/12 text-start text-lg font-semibold text-gray-700">Código</th>
+                  <th className="p-4 w-4/12 text-start text-lg font-semibold text-gray-700">Nome</th>
+                  <th className="p-4 w-3/12 text-center text-lg font-semibold text-gray-700">Semestre</th>
+                  <th className="p-4 w-1/12"></th>
                   <th className="p-4 w-1/12"></th>
                   <th className="p-4 w-1/12"></th>
                 </tr>
@@ -156,10 +201,19 @@ export default function SubjectManagement() {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.1 }}
                   >
-                    <td className="p-4 w-2/6 font-medium text-gray-700">{subject.subjectId}</td>
-                    <td className="p-4 w-2/6 text-gray-600">{subject.name}</td>
-                    <td className="p-4 w-2/6 text-center">
+                    <td className="p-4 w-2/12 font-medium text-gray-700">{subject.subjectId}</td>
+                    <td className="p-4 w-4/12 text-gray-600">{subject.name}</td>
+                    <td className="p-4 w-3/12  text-center">
                       <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">{subject.semester}º Semestre</span>
+                    </td>
+                    <td className="p-4 w-1/12 text-center">
+                      <Button
+                        onClick={() => openUploadModal(index)}
+                        title="Upload dos alunos matriculados na disciplina"
+                        className="text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors"
+                      >
+                        <FaCloudUploadAlt />
+                      </Button>
                     </td>
                     <td className="p-4 w-1/12 text-center">
                       <Button onClick={() => openEditModal(index)} className="text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors">
@@ -263,7 +317,7 @@ export default function SubjectManagement() {
           )}
         </AnimatePresence>
 
-        {/* Modal de Confirmação de Exclusão */}  
+        {/* Modal de Confirmação de Exclusão */}
         <AnimatePresence>
           {isDeleteModalOpen && (
             <Modal isOpen={isDeleteModalOpen} onClose={closeDeleteModal} title="Confirmar Exclusão">
@@ -282,6 +336,57 @@ export default function SubjectManagement() {
                   >
                     Cancelar
                   </Button>
+                </div>
+              </div>
+            </Modal>
+          )}
+        </AnimatePresence>
+
+        {/* Modal de Matrícula de Aluno */}
+        <AnimatePresence>
+          {isUploadModalOpen && (
+            <Modal isOpen={isUploadModalOpen} onClose={closeUploadModal} title="Alunos matriculados na disciplina">
+              <div className="flex flex-col space-y-4">
+                <div>
+                  <Input
+                    type="file"
+                    accept=".csv"
+                    onChange={(e) => setCsvFile(e.target.files ? e.target.files[0] : null)}
+                    className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleUploadCsv}
+                    disabled={uploading}
+                    className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 text-lg font-semibold hover:scale-105"
+                  >
+                    Upload
+                  </Button>
+                </div>
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                  <table className="w-full border-collapse">
+                    <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                      <tr>
+                        <th className="p-4 text-start text-lg font-semibold text-gray-700">RA</th>
+                        <th className="p-4 text-start text-lg font-semibold text-gray-700">Nome</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {userSubject?.map((userSubject) => (
+                        <motion.tr
+                          key={null}
+                          className="hover:bg-blue-50/50 transition-colors duration-150"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.1 }}
+                        >
+                          <td className="p-4 font-medium text-gray-700">{userSubject.ra}</td>
+                          <td className="p-4 text-gray-600">{userSubject.name}</td>
+                        </motion.tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </Modal>

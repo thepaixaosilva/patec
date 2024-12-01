@@ -34,7 +34,7 @@ export default function Dashboard() {
     }
   }
 
-  const baseButtonClasses = 'flex flex-col items-center justify-center text-white px-6 py-4 rounded-xl size-64 transition-transform duration-300 hover:scale-105 hover:shadow-2xl'
+  const baseButtonClasses = 'flex flex-col items-center justify-center text-white px-6 py-4 rounded-xl size-56 transition-transform duration-300 hover:scale-105 hover:shadow-2xl'
 
   const buttonItems: ButtonItem[] = [
     {

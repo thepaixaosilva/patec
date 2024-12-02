@@ -1,22 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useQuery } from 'react-query'
+import { ISubject } from '@/interfaces/subjects'
 import api from '@/config/api'
-import { Subject } from "../../interfaces/subject"
+
+const fetchSubjects = () => api.get<ISubject[]>('/subjects')
 
 export default function useSubjects() {
-  const [subjects, setSubjects] = useState<Subject[]>([])
-
-  useEffect(() => {
-    const fetchSubjects = async () => {
-      try {
-        const response = await api.get('/subjects');
-        setSubjects(response.data);
-      } catch (error) {
-        console.error('Erro ao buscar disciplinas:', error);
-      }
-    };
-
-    fetchSubjects();
-  }, [])
-
-  return { subjects, setSubjects }
+  return useQuery(['subjects'], () => fetchSubjects(), {
+    onError: (error) => {
+      console.log(error)
+    },
+    select: (response) => response.data,
+  })
 }

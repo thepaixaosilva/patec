@@ -1,20 +1,22 @@
-import Navbar from '@/components/Navbar'
+"use client"
+// import Navbar from '@/components/shared/Navbar'
 import './globals.css'
 import { Provider } from '@/components/ui/provider'
+import { AuthProvider } from '@/contexts/auth'
+import { QueryClient, QueryClientProvider } from 'react-query'
 
-export const metadata = {
-  title: 'Patec - Início',
-  icons: {
-    icon: '/favicon.ico',
-  },
-}
+const queryClient = new QueryClient()
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html suppressHydrationWarning>
       <body>
-        <Navbar />
-        <Provider>{children}</Provider>
+        {/* <Navbar /> */}
+        <Provider>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>{children}</AuthProvider>
+          </QueryClientProvider>
+        </Provider>
       </body>
     </html>
   )

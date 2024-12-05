@@ -13,6 +13,7 @@ import useTestDays from '@/hooks/queries/useTestDay'
 import { LinkButton } from '@/components/ui/link-button'
 import { IoCalendar } from 'react-icons/io5'
 import Swal from 'sweetalert2'
+import SelectType from '@/components/Select'
 
 export default function TestManagement() {
   const { data: testDays = [] } = useTestDays() // Utilize o hook para obter os testDays
@@ -50,6 +51,10 @@ export default function TestManagement() {
     setNewTestDay({ id: 0, testDate: new Date(), testType: '', file: null })
   }
 
+  const handleSetTestType = (value: string) => {
+    setNewTestDay((prev) => ({ ...prev, testType: value }))
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
@@ -81,6 +86,7 @@ export default function TestManagement() {
       formData.append('testType', newTestDay.testType)
       formData.append('file', newTestDay.file)
 
+      console.log(newTestDay.file)
       createTestDay(formData)
       closeModal()
       showToast('success', 'Sucesso', 'Avaliação adicionada com sucesso!')
@@ -224,17 +230,9 @@ export default function TestManagement() {
                   onChange={(e) => setNewTestDay({ ...newTestDay, testDate: new Date(e.target.value) })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
                 />
-                <Select
-                  placeholder="Selecione o tipo"
-                  value={newTestDay.testType}
-                  onChange={(e) => setNewTestDay({ ...newTestDay, testType: e.target.value })}
-                  className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="Prova">Prova</option>
-                  <option value="Trabalho">Trabalho</option>
-                  <option value="Teste Prático">Teste Prático</option>
-                  <option value="Outro">Outro</option>
-                </Select>
+
+                <SelectType setTestType={handleSetTestType} />
+
                 {/* Anexar avaliação */}
                 <div className="flex flex-col">
                   <label htmlFor="fileUpload" className="flex items-center space-x-2 text-blue-600 cursor-pointer">
@@ -273,30 +271,9 @@ export default function TestManagement() {
                   onChange={(e) => setNewTestDay({ ...newTestDay, testDate: new Date(e.target.value) })}
                   className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
                 />
-                <Select
-                  placeholder="Selecione o tipo"
-                  value={newTestDay.testType}
-                  onChange={(e) => setNewTestDay({ ...newTestDay, testType: e.target.value })}
-                  className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="Prova">Prova</option>
-                  <option value="Trabalho">Trabalho</option>
-                  <option value="Teste Prático">Teste Prático</option>
-                  <option value="Outro">Outro</option>
-                </Select>
-                {/* Anexar avaliação 
-                <div className="flex flex-col">
-                  <label htmlFor="fileUpload" className="flex items-center space-x-2 text-blue-600 cursor-pointer">
-                    <FaPaperclip size={20} />
-                    <span>Anexar arquivo</span>
-                  </label>
-                  <Input id="fileUpload" type="file" onChange={handleFileChange} className="hidden" />
-                  {newTestDay.file && (
-                    <p className="text-sm text-gray-500">
-                      Arquivo selecionado: <span className="font-medium">{newTest.file.name}</span>
-                    </p>
-                  )}
-                </div>  */}
+
+                <SelectType setTestType={handleSetTestType} />
+
                 <div className="flex justify-end">
                   <Button
                     onClick={handleEditTest}

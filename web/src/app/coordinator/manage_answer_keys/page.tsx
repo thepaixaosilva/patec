@@ -11,12 +11,12 @@ import { useQuery } from 'react-query'
 import api from '@/config/api'
 import { useDeleteAnswerKeys } from '@/hooks/mutations/mutationAnswerKeys'
 import { ITestDay } from '@/interfaces/testDay'
-import { ISubject } from '@/interfaces/subjects'
+// import { ISubject } from '@/interfaces/subjects'
 import FormAnswerKeys from '@/components/FormAnswerKeys'
 
 
 export default function AnswerKeyManagement() {
-  const { data: allSubjects = [] } = useQuery<ISubject[]>('allSubjects', () => api.get('/subjects').then((res) => res.data))
+  // const { data: allSubjects = [] } = useQuery<ISubject[]>('allSubjects', () => api.get('/subjects').then((res) => res.data))
 
   const { data: allTests = [], refetch } = useQuery<ITestDay[]>('allTests', () => api.get('/test-days').then((res) => res.data))
 
@@ -183,12 +183,12 @@ export default function AnswerKeyManagement() {
           <Modal isOpen={isEditModalOpen} onClose={closeEditModal} title="Cadastrar/Editar Gabarito">
             <motion.div>
               <FormAnswerKeys
-                subjects={allSubjects}
-                testId={selectedTestId}
-                onSuccess={() => {
-                  refetch()
-                  closeEditModal()
-                }}
+                // subjects={allSubjects}
+                // testId={selectedTestId}
+                // onSuccess={() => {
+                //   refetch()
+                //   closeEditModal()
+                // }}
               />
             </motion.div>
           </Modal>

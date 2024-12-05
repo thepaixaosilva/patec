@@ -5,6 +5,8 @@ import FormStudentAnswers from '@/components/FormStudentAnswers'
 import { useCreateStudentAnswer } from '@/hooks/mutations/mutationStudentAnswers'
 import { useAuth } from '@/contexts/auth'
 import Swal from 'sweetalert2'
+import { useRouter } from 'next/navigation'
+
 
 // Tipo para respostas de uma disciplina
 interface SubjectAnswers {
@@ -22,7 +24,8 @@ type Subject = (typeof SUBJECTS)[number]
 export default function Test() {
   const { logout } = useAuth() // Acesso ao logout
   const createStudentAnswer = useCreateStudentAnswer()
-
+  const router = useRouter()
+  
   const [formData, setFormData] = useState<FormData>({})
 
   const handleUpdate = (subject: Subject, answers: SubjectAnswers) => {

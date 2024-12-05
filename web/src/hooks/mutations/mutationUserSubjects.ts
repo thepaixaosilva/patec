@@ -18,8 +18,8 @@ const uploadUserSubjectCsv = (file: File, subjectId: string) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('subjectId', subjectId);
-
-  return api.post('/user-subject/upload?subjectId=' + subjectId, formData, {
+  console.log("oi")
+  return api.post(`/user-subject/upload/${subjectId}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -34,7 +34,7 @@ export const useUploadUserSubjectCsv = () => {
       uploadUserSubjectCsv(file, subjectId),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries('user-subject');
+        queryClient.invalidateQueries('user-subjects');
       },
       onError: (error) => {
         console.error('Erro ao processar o CSV:', error);

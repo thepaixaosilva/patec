@@ -145,23 +145,27 @@ export default function SubjectManagement() {
     }
   }
 
-  const handleUploadCsv = async () => {
-    if (!csvFile || !newSubject.subjectId) {
-      alert('Por favor, selecione um arquivo e certifique-se de que a disciplina foi selecionada.');
-      return;
-    }
-  
-    setUploading(true); 
-    try {
-      await uploadCsvMutation.mutateAsync({ file: csvFile, subjectId: newSubject.subjectId });
-      alert('Arquivo enviado e processado com sucesso!');
-      setCsvFile(null);
-      closeUploadModal();
-    } catch (error) {
-      console.error('Erro ao fazer upload do CSV:', error);
-      alert('Erro ao fazer upload do CSV.');
-    } finally {
-      setUploading(false); 
+  const handleUploadCsv = async () => {  
+    if (editIndex !== null && subjects) {
+      const subjectToUpload = subjects[editIndex]
+      if (subjectToUpload) {
+        if (!csvFile) {
+          alert('Por favor, selecione um arquivo.');
+          return;
+        }
+        setUploading(true); 
+        try {
+          await uploadCsvMutation.mutateAsync({ file: csvFile, subjectId: subjectToUpload.subjectId });
+          alert('Arquivo enviado e processado com sucesso!');
+          setCsvFile(null);
+          closeUploadModal();
+        } catch (error) {
+          console.error('Erro ao fazer upload do CSV:', error);
+          alert('Erro ao fazer upload do CSV.');
+        } finally {
+          setUploading(false); 
+        }
+      }
     }
   };
 
@@ -210,8 +214,8 @@ export default function SubjectManagement() {
                 <tr>
                   <th className="p-4 w-2/12 text-start text-lg font-semibold text-gray-700">Código</th>
                   <th className="p-4 w-4/12 text-start text-lg font-semibold text-gray-700">Nome</th>
-                  <th className="p-4 w-3/12 text-center text-lg font-semibold text-gray-700">Semestre</th>
-                  <th className="p-4 w-1/12"></th>
+                  <th className="p-4 w-2/12 text-center text-lg font-semibold text-gray-700">Semestre</th>
+                  <th className="p-4 w-2/12 text-center text-lg font-semibold text-gray-700">Matrículas</th>
                   <th className="p-4 w-1/12"></th>
                   <th className="p-4 w-1/12"></th>
                 </tr>
@@ -227,14 +231,14 @@ export default function SubjectManagement() {
                   >
                     <td className="p-4 w-2/12 font-medium text-gray-700">{subject.subjectId}</td>
                     <td className="p-4 w-4/12 text-gray-600">{subject.name}</td>
-                    <td className="p-4 w-3/12  text-center">
+                    <td className="p-4 w-2/12  text-center">
                       <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">{subject.semester}º Semestre</span>
                     </td>
-                    <td className="p-4 w-1/12 text-center">
+                    <td className="p-4 w-2/12 text-center">
                       <Button
                         onClick={() => openUploadModal(index)}
                         title="Upload dos alunos matriculados na disciplina"
-                        className="text-blue-600 hover:text-blue-700 p-3 hover:bg-blue-50 rounded-xl transition-colors"
+                        className="text-center text-green-600 hover:text-green-700 p-3 hover:bg-green-50 rounded-xl transition-colors"
                       >
                         <FaCloudUploadAlt />
                       </Button>
@@ -375,14 +379,13 @@ export default function SubjectManagement() {
                     type="file"
                     accept=".csv"
                     onChange={(e) => setCsvFile(e.target.files ? e.target.files[0] : null)}
-                    className="border border-gray-200 p-3 text-lg w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                 </div>
                 <div className="flex justify-end">
                   <Button
                     onClick={handleUploadCsv}
                     disabled={uploading}
-                    className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 text-lg font-semibold hover:scale-105"
+                    className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 text-lg font-semibold hover:scale-105"
                   >
                     Upload
                   </Button>

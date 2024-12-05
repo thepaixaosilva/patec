@@ -3,12 +3,17 @@ import { CreateUserSubjectDto } from './dto/create-user-subject.dto'
 import { UserSubject } from './entities/user-subject.entity'
 import { Repository } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
+import * as fs from 'fs'
+import { parse } from 'csv-parse/sync'
+import { UsersService } from 'src/users/users.service'
 
 @Injectable()
 export class UserSubjectService {
   constructor(
     @InjectRepository(UserSubject)
-    private readonly userSubjectRepository: Repository<UserSubject>
+    private readonly userSubjectRepository: Repository<UserSubject>,
+
+    private readonly userService: UsersService
   ) {}
 
   /**
@@ -87,5 +92,64 @@ export class UserSubjectService {
     } catch (error) {
       throw new InternalServerErrorException('Erro ao remover matrícula: ' + error)
     }
+  }
+
+  async removeAllSubject(subjectId: string) {
+    const userSubject = await this.userSubjectRepository.find({ where: { subjectId } })
+
+    if (!userSubject) {
+      throw new NotFoundException('Matrícula não encontrada')
+    }
+
+    try {
+      await this.userSubjectRepository.remove(userSubject)
+    } catch (error) {
+      throw new InternalServerErrorException('Erro ao remover matrícula: ' + error)
+    }
+  }
+  /*
+  async uploadStudents(subjectId: string, students: { ra: string; name: string }[]) {
+    // Remover alunos atuais
+    await this.removeAllSubject(subjectId);
+  
+    // Adicionar novos alunos
+    const newUsers = students.map((student) => ({
+      ra: student.ra,
+      name: student.name,
+      subjectId,
+    }));
+  
+    try {
+      await this.userSubjectRepository.save(newUsers);
+    } catch (error) {
+      throw new InternalServerErrorException('Erro ao salvar alunos: ' + error);
+    }
+  }*/
+
+  async processCsv(filePath: string, subjectId: string) {
+    const csvData = fs.readFileSync(filePath, 'utf8')
+
+    // Parse CSV para extrair alunos
+    const students = parse(csvData, { columns: true }).map((row: any) => ({
+      ra: row.ra.trim(),
+      name: row.name.trim(),
+      subjectId,
+    }))
+
+    // Remover alunos existentes
+    await this.removeAllSubject(subjectId)
+
+    // Inserir novos alunos
+    try {
+      for (let student of students) {
+        student = await this.userService.findOne(student.ra)
+        await this.userSubjectRepository.save({ userId: student.id, subjectId, userRa: student.ra})
+      }
+    } catch (error) {
+      throw new InternalServerErrorException('Erro ao salvar novos alunos: ' + error)
+    }
+
+    // Remover arquivo do disco após processamento
+    fs.unlinkSync(filePath)
   }
 }

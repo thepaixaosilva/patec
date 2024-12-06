@@ -18,7 +18,6 @@ export class AuthService {
    * @throws UnauthorizedException if credentials are invalid
    */
   async signIn(email: string, password: string): Promise<{ token: string }> {
-
     const user = await this.usersService.findOneByEmail(email)
     if (!user) {
       throw new UnauthorizedException('Invalid email or password')

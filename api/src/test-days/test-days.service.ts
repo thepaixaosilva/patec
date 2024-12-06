@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { CreateTestDayDto } from './dto/create-test-day.dto'
 import { UpdateTestDayDto } from './dto/update-test-day.dto'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -50,6 +50,19 @@ export class TestDaysService {
     return testDay
   }
 
+  async findOneByDate(testDate: string): Promise<TestDay> {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(testDate)) {
+      throw new BadRequestException(`Formato de data inválido: ${testDate}`)
+    }
+
+    const testDay = await this.testDayRepository.findOneBy({ testDate })
+
+    if (!testDay) {
+      throw new NotFoundException(`Dia de avaliação com a data de realização ${testDate} não encontrado`)
+    }
+
+    return testDay
+  }
   /**
    * Updates a test day
    * @param id - Test day ID

@@ -11,7 +11,7 @@ export class CreateTestDayDto {
   @Transform(({ value }) => new Date(value))
   @IsDate({ message: 'Invalid date' })
   @IsNotEmpty({ message: 'Test date is required' })
-  testDate: Date
+  testDate: string
 
   @ApiProperty({
     description: 'The type of the test',

@@ -93,20 +93,8 @@ export class StudentAnswersService {
     return this.studentAnswersRepository.remove(studentAnswer)
   }
 
-  private calculateScore(
-    studentAnswers: CreateStudentAnswerDto,
-    answerKey: AnswerKey, 
-    totalQuestions: number, 
-    pointsPerQuestion: number
-  ): number {
-
-    const answerFields = [
-      'answer1', 
-      'answer2', 
-      'answer3', 
-      'answer4', 
-      'answer5'
-    ]
+  private calculateScore(studentAnswers: CreateStudentAnswerDto, answerKey: AnswerKey, totalQuestions: number, pointsPerQuestion: number): number {
+    const answerFields = ['answer1', 'answer2', 'answer3', 'answer4', 'answer5']
 
     const correctAnswers = answerFields.filter((field) => studentAnswers[field] === answerKey[field]).length
 

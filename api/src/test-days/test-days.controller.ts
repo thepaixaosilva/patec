@@ -40,7 +40,6 @@ export class TestDaysController {
     })
   )
   create(@Body() createTestDayDto: CreateTestDayDto, @UploadedFile() file: Express.Multer.File) {
-    createTestDayDto.testDate = new Date(createTestDayDto.testDate)
     createTestDayDto.filePath = file?.path.split('/')[3]
     return this.testDaysService.create(createTestDayDto)
   }
@@ -59,7 +58,7 @@ export class TestDaysController {
     return this.testDaysService.findAll()
   }
 
-  @Get(':id')
+  @Get('find-by-id/:id')
   @ApiOperation({
     summary: 'Get a test day by ID',
     description: 'Retrieves a specific test day and its associated answer keys by ID.',
@@ -83,7 +82,13 @@ export class TestDaysController {
     return this.testDaysService.findOne(+id)
   }
 
-  @Get('pdf/:filename')
+  @Get('find-by-date/:testDate')
+  @Public()
+  findOneByDate(@Param('testDate') testDate: string) {
+    return this.testDaysService.findOneByDate(testDate)
+  }
+
+  @Get('get-pdf/:filename')
   @Public()
   getPdf(@Param('filename') filename: string, @Res() res: Response) {
     // Definindo o caminho para o arquivo PDF

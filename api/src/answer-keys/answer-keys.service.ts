@@ -5,12 +5,20 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { AnswerKey } from './entities/answer-key.entity'
 import { Repository } from 'typeorm'
 import { format } from 'date-fns'
+import { TestDay } from 'src/test-days/entities/test-day.entity'
+import { Subject } from 'src/subjects/entities/subject.entity'
 
 @Injectable()
 export class AnswerKeysService {
   constructor(
     @InjectRepository(AnswerKey)
-    private answerKeyRepository: Repository<AnswerKey>
+    private answerKeyRepository: Repository<AnswerKey>,
+
+    @InjectRepository(TestDay)
+    private testDayRepository: Repository<TestDay>,
+
+    @InjectRepository(Subject)
+    private subjectRepository: Repository<Subject>
   ) {}
 
   /**
@@ -18,8 +26,22 @@ export class AnswerKeysService {
    * @param createAnswerKeyDto - Dados para criação do gabarito
    * @returns Promise com o gabarito criado
    */
-  create(createAnswerKeyDto: CreateAnswerKeyDto) {
-    const answerKey = this.answerKeyRepository.create(createAnswerKeyDto)
+  async create(createAnswerKeyDto: CreateAnswerKeyDto) {
+    const answerKey = new AnswerKey()
+    answerKey.answer1 = createAnswerKeyDto.answer1
+    answerKey.answer2 = createAnswerKeyDto.answer2
+    answerKey.answer3 = createAnswerKeyDto.answer3
+    answerKey.answer4 = createAnswerKeyDto.answer4
+    answerKey.answer5 = createAnswerKeyDto.answer5
+
+    // Buscar as entidades completas pelos IDs
+    answerKey.testDay = await this.testDayRepository.findOne({
+      where: { id: createAnswerKeyDto.testDayId },
+    })
+
+    answerKey.subject = await this.subjectRepository.findOne({
+      where: { subjectId: createAnswerKeyDto.subjectId },
+    })
 
     return this.answerKeyRepository.save(answerKey)
   }

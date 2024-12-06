@@ -1,13 +1,13 @@
-import { IsDate, IsNotEmpty } from 'class-validator'
+import { IsNotEmpty, IsInt, IsString, Length } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
-import { Subject } from 'src/subjects/entities/subject.entity'
-import { TestDay } from 'src/test-days/entities/test-day.entity'
 
 export class CreateAnswerKeyDto {
   @ApiProperty({
     description: 'The first answer in the answer key',
     example: 'A',
   })
+  @IsString()
+  @Length(1, 1, { message: 'Answer must be a single character' })
   @IsNotEmpty({ message: 'Answer is required!' })
   answer1: string
 
@@ -15,6 +15,8 @@ export class CreateAnswerKeyDto {
     description: 'The second answer in the answer key',
     example: 'B',
   })
+  @IsString()
+  @Length(1, 1, { message: 'Answer must be a single character' })
   @IsNotEmpty({ message: 'Answer is required!' })
   answer2: string
 
@@ -22,6 +24,8 @@ export class CreateAnswerKeyDto {
     description: 'The third answer in the answer key',
     example: 'C',
   })
+  @IsString()
+  @Length(1, 1, { message: 'Answer must be a single character' })
   @IsNotEmpty({ message: 'Answer is required!' })
   answer3: string
 
@@ -29,6 +33,8 @@ export class CreateAnswerKeyDto {
     description: 'The fourth answer in the answer key',
     example: 'D',
   })
+  @IsString()
+  @Length(1, 1, { message: 'Answer must be a single character' })
   @IsNotEmpty({ message: 'Answer is required!' })
   answer4: string
 
@@ -36,21 +42,25 @@ export class CreateAnswerKeyDto {
     description: 'The fifth answer in the answer key',
     example: 'E',
   })
+  @IsString()
+  @Length(1, 1, { message: 'Answer must be a single character' })
   @IsNotEmpty({ message: 'Answer is required!' })
   answer5: string
 
   @ApiProperty({
-    description: 'The date of the test',
-    example: '2024-05-15T08:30:00Z',
+    description: 'The ID of the test day',
+    example: 1,
   })
-  @IsDate({ message: 'Invalid date!' })
+  @IsInt({ message: 'Test day must be an integer' })
   @IsNotEmpty({ message: 'Test day is required!' })
-  testDay: TestDay
+  testDayId: number
 
   @ApiProperty({
-    description: 'The subject associated with the answer key',
-    example: { id: 1, name: 'Mathematics' },
+    description: 'The ID of the subject',
+    example: 1,
   })
+  @IsString({ message: 'Subject must be a string' })
   @IsNotEmpty({ message: 'Subject is required!' })
-  subject: Subject
+  subjectId: string
 }
+  

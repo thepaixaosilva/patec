@@ -21,8 +21,8 @@ export class TestDay {
     format: 'date-time',
     required: true,
   })
-  @Column({ type: 'datetime' })
-  testDate: Date
+  @Column({ type: 'date' })
+  testDate: string
 
   @ApiProperty({
     enum: TestType,
@@ -48,7 +48,7 @@ export class TestDay {
     nullable: true,
     comment: 'Caminho do arquivo no sistema de armazenamento',
   })
-  filePath: string;
+  filePath: string
 
   @ApiProperty({
     type: () => [AnswerKey],

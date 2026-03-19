@@ -1,32 +1,34 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { UsersModule } from './users/users.module'
-import { SubjectsModule } from './subjects/subjects.module'
-import { AnswerKeysModule } from './answer-keys/answer-keys.module'
-import { StudentAnswersModule } from './student-answers/student-answers.module'
-import { TestDaysModule } from './test-days/test-days.module'
+import { UsersModule } from './modules/users/users.module'
+import { SubjectsModule } from './modules/subjects/subjects.module'
+import { AnswerKeysModule } from './modules/answer-keys/answer-keys.module'
+import { StudentAnswersModule } from './modules/student-answers/student-answers.module'
+import { TestDaysModule } from './modules/test-days/test-days.module'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { config } from './ormconfig'
-import { AuthModule } from './auth/auth.module'
-import { UserSubjectModule } from './user-subject/user-subject.module'
-// import { CreateCoordinatorCommand } from './commands/create-coordinator.command'
-import { User } from './users/entities/user.entity'
+import { AuthModule } from './modules/auth/auth.module'
+import { UserSubjectModule } from './modules/user-subject/user-subject.module'
 import { ConfigModule } from '@nestjs/config'
-import { LoggerMiddleware } from './middlewares/logger.middleware'
-import { AuthController } from './auth/auth.controller'
+import { AuthController } from './modules/auth/auth.controller'
 import { AuthGuard } from './guards/auth.guard'
-import { AuthService } from './auth/auth.service'
+import { AuthService } from './modules/auth/auth.service'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { join } from 'path'
+import { TypeOrmConfigService } from './database/typeorm-config.service'
+import appConfig from './config/app.config'
+import databaseConfig from './database/config/database.config'
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      load: [appConfig, databaseConfig],
+      envFilePath: ['.env'],
     }),
-    TypeOrmModule.forRoot(config),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forRootAsync({
+      useClass: TypeOrmConfigService,
+    }),
     UsersModule,
     SubjectsModule,
     AnswerKeysModule,
@@ -43,7 +45,4 @@ import { join } from 'path'
   providers: [AppService, AuthService, AuthGuard],
 })
 export class AppModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes({ path: '*', method: RequestMethod.ALL }) // Aplica o middleware para todas as rotas
-  }
 }
